@@ -173,3 +173,48 @@ def test_audit_mencatat_aksi(client):
     halaman = client.get("/admin/audit")
     assert halaman.status_code == 200
     assert "faq.create" in halaman.text or "service.update" in halaman.text
+
+
+def test_beri_label_pertanyaan_gagal(client):
+    """Tombol Beri label: pertanyaan tak dikenal masuk dataset latih."""
+    from conftest import buat_pengajuan_domisili, nik_unik
+
+    from app.db import SessionLocal
+    from app.models import TrainingSample
+
+    unik = f"apakah desa punya ambulans siaga {nik_unik()[:6]}"
+    sid = client.post(
+        "/api/v1/chat/sessions", json={"channel": "web", "kontak": "uji-label"}
+    ).json()["session_id"]
+    data = client.post(
+        "/api/v1/chat/messages", json={"session_id": sid, "pesan": unik}
+    ).json()
+    assert data["intent"] in {None, "LAINNYA"} or (data["confidence"] or 0) < 0.65
+
+    masuk(client, "sekdes")
+    assert unik in client.get("/admin/pertanyaan").text
+
+    csrf = csrf_dari(client.get("/admin/pertanyaan").text)
+    r = client.post(
+        "/admin/pertanyaan/label",
+        data={"csrf": csrf, "teks": unik, "intent_kode": "INFO_JAM_LAYANAN"},
+    )
+    assert r.status_code == 303
+    assert "err" not in r.headers["location"]
+
+    with SessionLocal() as db:
+        baris = db.query(TrainingSample).filter_by(teks=unik).one()
+        assert baris.intent_kode == "INFO_JAM_LAYANAN"
+        assert baris.sumber == "koreksi"
+        assert baris.aktif is True
+
+
+def test_beri_label_intent_tidak_dikenal_ditolak(client):
+    masuk(client, "sekdes")
+    csrf = csrf_dari(client.get("/admin/pertanyaan").text)
+    r = client.post(
+        "/admin/pertanyaan/label",
+        data={"csrf": csrf, "teks": "teks uji", "intent_kode": "TIDAK_ADA"},
+    )
+    assert r.status_code == 303
+    assert "err" in r.headers["location"]
