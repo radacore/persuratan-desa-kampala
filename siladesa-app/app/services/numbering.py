@@ -22,9 +22,11 @@ def next_ticket_no(db: Session, app: Application) -> str:
 
     `ticket_no` wajib unik dan NOT NULL, jadi sebelum flush dipakai nilai
     sementara berentropi tinggi agar dua transaksi paralel tidak bertabrakan.
+    Nilai sementara dibatasi 19 karakter (`TMP` + 16 heksadesimal) karena kolom
+    `ticket_no` hanya `varchar(20)`; PostgreSQL menolak nilai lebih panjang,
     """
     if not app.ticket_no or not app.ticket_no.startswith("APP-"):
-        app.ticket_no = f"TMP{secrets.token_hex(10)}"
+        app.ticket_no = f"TMP{secrets.token_hex(8)}"
     db.flush()
     tahun = (app.created_at or _sekarang()).year
     app.ticket_no = f"APP-{tahun}-{app.id:06d}"
