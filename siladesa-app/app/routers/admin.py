@@ -555,6 +555,13 @@ async def ubah_status(
         # Panggilan HTTP keluar (timeout 10 dtk) tidak boleh menahan event loop.
         await run_in_threadpool(beri_tahu_warga, app.channel, kontak, pesan)
 
+        # Warga yang mengajukan lewat widget web tidak menerima push kanal,
+        # sehingga status baru wajib dimasukkan ke percakapan asalnya juga.
+        # Tanpa ini penolakan/perubahan status tidak terlihat warga (hanya
+        # tercatat di server).
+        chatsvc.kirim_pesan_keluar(db, app.id, pesan)
+        db.commit()
+
     return _kembali(f"/admin/pengajuan/{app_id}", f"Status diubah ke {ke}.")
 
 

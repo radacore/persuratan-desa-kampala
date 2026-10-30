@@ -858,14 +858,19 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
                 sesi.field_index = 0
             else:
                 tiket = draft.ticket_no
+                nik = (draft.form_data or {}).get("nik", "")
+                # Tombol status membawa tiket + NIK dari sesi ini, sehingga warga
+                # tidak perlu mengetik nomor tiket manual. Tiket tetap ditampilkan
+                # kecil sebagai arsip bila warga pindah perangkat.
                 balasan = [
-                    f"✅ Pengajuan diterima.\nNomor tiket: {draft.ticket_no}\n"
+                    f"\u2705 Pengajuan diterima.\nNomor tiket: {draft.ticket_no}\n"
                     f"Status: menunggu verifikasi petugas.\n"
                     f"Simpan nomor ini untuk mengecek status."
                 ]
                 pilihan = [
-                    {"label": "Cek status", "value": f"cek {draft.ticket_no}"},
-                    {"label": "Selesai", "value": "terima kasih"},
+                    {"label": "Lihat status pengajuan saya",
+                     "value": f"cek {draft.ticket_no} {nik}".strip()},
+                    {"label": "Selesai", "value": "terima kasih"}
                 ]
                 _reset(sesi)
                 sesi.state = C.ChatState.IDLE.value
@@ -902,9 +907,19 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
 
     # --- klasifikasi ------------------------------------------------------ #
     else:
-        hasil = nlp.prediksi(pesan)
-        intent = hasil.intent
-        confidence = hasil.confidence
+        # Bila pesan sudah ditandai sebagai perintah sistem di atas (menu, angka,
+        # ya/tidak), JANGAN timpa dengan hasil model: jawaban navigasi harus tetap
+        # ber-intent SISTEM_* agar tidak masuk antrean pertanyaan gagal.
+        if intent is not None and intent.startswith("SISTEM_"):
+            if not balasan:
+                balasan = _menu_text(db)
+                pilihan = PILIHAN_MENU
+                sesi.state = C.ChatState.MENU.value
+            hasil = None
+        else:
+            hasil = nlp.prediksi(pesan)
+            intent = hasil.intent
+            confidence = hasil.confidence
         tinggi, rendah = _ambang(db)
 
         # Nomor menu lebih diutamakan bila sesi baru dibuka.

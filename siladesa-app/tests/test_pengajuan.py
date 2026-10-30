@@ -197,3 +197,65 @@ def test_tautan_unduh_masuk_ke_chat_setelah_terbit(client):
 
         # Catatan verifikasi operator tidak boleh tertimpa catatan penerbitan.
         assert pengajuan.catatan_operator == "Berkas lengkap."
+
+
+def test_status_ditolak_masuk_ke_chat_warga(client):
+    """Penolakan + alasan wajib terlihat di percakapan (bukan cuma push kanal)."""
+    from sqlalchemy import select
+
+    from app.db import SessionLocal
+    from app.models import Application, ChatMessage, ConversationSession
+
+    tiket = buat_pengajuan_domisili(client, nik_unik())
+
+    masuk(client, "operator")
+    app_id = id_pengajuan(client, tiket)
+    csrf = csrf_dari(client.get(f"/admin/pengajuan/{app_id}").text)
+    r = client.post(
+        f"/admin/pengajuan/{app_id}/status",
+        data={"csrf": csrf, "ke": "DITOLAK", "catatan": "KTP buram, foto ulang."},
+    )
+    assert r.status_code == 303 and "err" not in r.headers["location"]
+
+    with SessionLocal() as db:
+        pengajuan = db.get(Application, app_id)
+        assert pengajuan is not None and pengajuan.session_id
+        sesi = db.get(ConversationSession, pengajuan.session_id)
+        assert sesi is not None
+        pesan = db.execute(
+            select(ChatMessage)
+            .where(ChatMessage.session_id == sesi.id, ChatMessage.arah == "out")
+            .order_by(ChatMessage.id.desc())
+        ).scalars().first()
+        assert pesan is not None, "tidak ada pesan keluar ke warga setelah penolakan"
+        assert "KTP buram" in pesan.isi, "alasan penolakan tidak ikut terkirim"
+
+
+def test_status_diproses_masuk_ke_chat_warga(client):
+    """Perubahan ke DIPROSES juga terlihat di percakapan."""
+    from sqlalchemy import select
+
+    from app.db import SessionLocal
+    from app.models import Application, ChatMessage, ConversationSession
+
+    tiket = buat_pengajuan_domisili(client, nik_unik())
+
+    masuk(client, "operator")
+    app_id = id_pengajuan(client, tiket)
+    csrf = csrf_dari(client.get(f"/admin/pengajuan/{app_id}").text)
+    r = client.post(
+        f"/admin/pengajuan/{app_id}/status",
+        data={"csrf": csrf, "ke": "DIPROSES", "catatan": "Berkas lengkap."},
+    )
+    assert r.status_code == 303 and "err" not in r.headers["location"]
+
+    with SessionLocal() as db:
+        pengajuan = db.get(Application, app_id)
+        sesi = db.get(ConversationSession, pengajuan.session_id)
+        pesan = db.execute(
+            select(ChatMessage)
+            .where(ChatMessage.session_id == sesi.id, ChatMessage.arah == "out")
+            .order_by(ChatMessage.id.desc())
+        ).scalars().first()
+        assert pesan is not None, "tidak ada pesan keluar ke warga setelah diproses"
+        assert "diproses" in pesan.isi.lower()

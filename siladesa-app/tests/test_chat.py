@@ -222,3 +222,18 @@ def test_jawaban_menu_tercatat_intent_sistem(client):
             m.isi, m.intent_kode,
         )
         assert m.confidence == 1.0, (m.isi, m.confidence)
+
+
+def test_tombol_status_otomatis_tanpa_ketik_tiket(client):
+    """Opsi A: tombol 'Lihat status pengajuan saya' membawa tiket + NIK sesi."""
+    from conftest import buat_pengajuan_domisili, nik_unik
+
+    nik = nik_unik()
+    tiket = buat_pengajuan_domisili(client, nik)
+
+    sid = _sesi(client)
+    data = _kirim(client, sid, f"cek {tiket} {nik}")
+    teks = " ".join(data["balasan"])
+    assert tiket in teks
+    assert data["state"] == "IDLE"
+    assert "/d/" not in teks  # belum terbit: tidak boleh ada tautan unduh
