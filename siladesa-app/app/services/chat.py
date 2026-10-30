@@ -647,6 +647,16 @@ def _jawab_info(db: Session, sesi: ConversationSession, intent: str) -> list[str
         service = _layanan(db, INFO_LAYANAN[intent])
         if service:
             return [_syarat_text(service)]
+    if intent == "INFO_KONTAK":
+        # Nomor telepon diambil dari pengaturan agar selalu mengikuti data
+        # terbaru; bila belum diisi admin, tawarkan jalur eskalasi.
+        telepon = _setting(db, "telepon_kantor", "").strip()
+        if telepon and telepon != "-":
+            return [
+                f"Nomor telepon kantor Desa Kampala: {telepon}.\n"
+                "Hubungi pada jam kerja (Senin\u2013Kamis pukul 08.00\u201315.00 WITA, "
+                "Jumat pukul 08.00\u201311.00 WITA)."
+            ]
     faq = _faq_untuk(db, intent)
     if faq:
         return [faq.jawaban]
