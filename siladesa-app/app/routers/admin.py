@@ -1987,6 +1987,9 @@ def pertanyaan_gagal(
     """Antrean pertanyaan yang tidak dikenali model (confidence rendah / LAINNYA)."""
     _izin(user, "faq.manage")
 
+    dilabeli = (
+        select(TrainingSample.teks).where(TrainingSample.aktif.is_(True)).scalar_subquery()
+    )
     stmt = (
         select(ChatMessage)
         .options(selectinload(ChatMessage.session))
@@ -1997,6 +2000,10 @@ def pertanyaan_gagal(
                 ChatMessage.intent_kode == "LAINNYA",
                 ChatMessage.confidence < C.CONFIDENCE_RENDAH,
             ),
+            # Pesan yang teksnya sudah dilabeli tidak ditampilkan lagi, supaya
+            # petugas tidak mengira labelnya gagal tersimpan lalu mengklik
+            # berkali-kali (yang justru menambah duplikat ke dataset).
+            ~ChatMessage.isi.in_(dilabeli),
         )
     )
     total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar_one()

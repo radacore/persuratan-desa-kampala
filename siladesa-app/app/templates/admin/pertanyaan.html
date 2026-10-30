@@ -50,6 +50,7 @@
           <label class="field" style="margin-bottom: 0; min-width: 260px; flex: 1;">
             <span class="label">Label intent yang benar</span>
             <select class="select" name="intent_kode" required>
+              <option value="" disabled selected>— Pilih intent —</option>
               {% for i in intents %}
               <option value="{{ i.kode }}" {% if m.intent_kode == i.kode %}selected{% endif %}>
                 {{ i.kode }} — {{ i.nama }}
