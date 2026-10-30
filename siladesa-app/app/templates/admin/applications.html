@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% from "partials/paginasi.html" import paginasi with context %}
+{% block isi %}
+
+<form class="card mb-4" method="get" action="/admin/pengajuan">
+  <div class="card__body">
+    <div class="form-grid form-grid--3" style="align-items: end;">
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Cari</span>
+        <input class="input" type="search" name="q" value="{{ filter.q }}"
+               placeholder="Tiket, nama, atau NIK">
+      </label>
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Status</span>
+        <select class="select" name="status">
+          <option value="">Semua status</option>
+          {% for s in status_semua %}
+          <option value="{{ s }}" {% if filter.status == s %}selected{% endif %}>
+            {{ s|status_label }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Layanan</span>
+        <select class="select" name="layanan">
+          <option value="">Semua layanan</option>
+          {% for s in daftar_layanan %}
+          <option value="{{ s.kode }}" {% if filter.layanan == s.kode %}selected{% endif %}>
+            {{ s.nama }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="card__foot row">
+    <button class="btn btn--primary btn--sm" type="submit">{{ ikon('search', 16) }} Terapkan</button>
+    <a class="btn btn--ghost btn--sm" href="/admin/pengajuan">Reset</a>
+    <span class="caption" style="margin-left: auto;">{{ info.total }} pengajuan ditemukan</span>
+  </div>
+</form>
+
+<section class="card">
+  {% if baris %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>Tiket</th>
+          <th>Pemohon</th>
+          <th>Layanan</th>
+          <th>Status</th>
+          <th>Diajukan</th>
+          <th>Diperbarui</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in baris %}
+        <tr>
+          <td class="mono nowrap"><a href="/admin/pengajuan/{{ a.id }}">{{ a.ticket_no }}</a></td>
+          <td>
+            {{ a.citizen.nama_lengkap if a.citizen else 'Belum terisi' }}
+            <div class="caption mono">{{ a.citizen.nik|mask_nik if a.citizen else '' }}</div>
+          </td>
+          <td class="kecil">{{ a.service.nama if a.service else '-' }}</td>
+          <td><span class="badge {{ a.status|status_kelas }}">{{ a.status|status_label }}</span></td>
+          <td class="kecil muted nowrap">{{ a.created_at|tanggal }}<br>{{ a.created_at|waktu }} WITA</td>
+          <td class="kecil muted nowrap">{{ a.updated_at|sejak }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card__foot">{{ paginasi(info) }}</div>
+  {% else %}
+  <div class="kosong">
+    <h3>Tidak ada pengajuan</h3>
+    <p class="kecil mb-0">Coba ubah filter atau kata kunci pencarian.</p>
+    <a class="btn btn--secondary btn--sm mt-4" href="/admin/pengajuan">Reset filter</a>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

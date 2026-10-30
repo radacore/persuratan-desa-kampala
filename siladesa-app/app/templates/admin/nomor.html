@@ -1,0 +1,140 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+  <div class="stat stat--aksen">
+    <div class="stat__label">Nomor berikutnya</div>
+    <div class="stat__nilai mono" style="font-size: 1.25rem;">{{ berikut }}</div>
+    <div class="stat__catatan">Dipakai saat surat diterbitkan</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">Surat terbit terakhir</div>
+    <div class="stat__nilai mono" style="font-size: 1.25rem;">
+      {{ terpakai[0].nomor_surat if terpakai else '—' }}
+    </div>
+    <div class="stat__catatan">
+      {% if terpakai %}{{ terpakai[0].issued_at|tanggal }}{% else %}Belum ada surat terbit{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="form-grid form-grid--2 mt-6" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Penghitung nomor</h2>
+        <p class="caption mb-0">Urutan dinaikkan otomatis setiap surat terbit.</p>
+      </div>
+    </div>
+    {% if rows %}
+    <div class="tabel-wrap">
+      <table class="tabel tabel--rapat">
+        <thead>
+          <tr><th>Kode</th><th>Periode</th><th class="angka">Terpakai</th><th>Format</th></tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="mono">{{ r.kode }}</td>
+            <td class="nowrap">{{ '%02d'|format(r.bulan) }}/{{ r.tahun }}</td>
+            <td class="angka">{{ r.urutan }}</td>
+            <td class="mono kecil muted">
+              {{ '%03d'|format(r.urutan + 1) }}/{{ r.kode }}/{{ r.bulan|romawi }}/{{ r.tahun }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="kosong">
+      <h3>Belum ada penghitung</h3>
+      <p class="kecil mb-0">Baris dibuat otomatis saat surat pertama diterbitkan.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Setel urutan manual</h2>
+        <p class="caption mb-0">Untuk melanjutkan penomoran dari arsip surat lama.</p>
+      </div>
+    </div>
+    <form method="post" action="/admin/nomor"
+          data-konfirmasi="Setel urutan penghitung? Nomor berikutnya akan mengikuti nilai ini.">
+      <div class="card__body">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <div class="form-grid form-grid--3">
+          <label class="field">
+            <span class="label">Tahun</span>
+            <input class="input" type="number" name="tahun" min="2000" max="2100"
+                   value="{{ sekarang.year if sekarang else 2026 }}">
+          </label>
+          <label class="field">
+            <span class="label">Bulan</span>
+            <input class="input" type="number" name="bulan" min="1" max="12"
+                   value="{{ sekarang.month if sekarang else 1 }}">
+          </label>
+          <label class="field">
+            <span class="label">Sudah terpakai</span>
+            <input class="input" type="number" name="urutan" min="0" value="0">
+          </label>
+        </div>
+        <p class="caption mb-0">
+          Mengisi <strong>12</strong> berarti surat berikutnya bernomor 013. Gunakan angka
+          jumlah surat yang sudah terbit pada periode tersebut.
+        </p>
+      </div>
+      <div class="card__foot">
+        <button class="btn btn--secondary btn--sm" type="submit">Setel urutan</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<section class="card mt-6">
+  <div class="card__head">
+    <div>
+      <h2>15 surat terakhir</h2>
+      <p class="caption mb-0">Untuk memeriksa kesinambungan nomor.</p>
+    </div>
+  </div>
+  {% if terpakai %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr><th>Nomor surat</th><th>Tiket</th><th>Layanan</th><th>Status</th><th>Terbit</th></tr>
+      </thead>
+      <tbody>
+        {% for d in terpakai %}
+        <tr>
+          <td class="mono nowrap">{{ d.nomor_surat }}</td>
+          <td class="mono nowrap">
+            {% if d.application %}
+            <a href="/admin/pengajuan/{{ d.application.id }}">{{ d.application.ticket_no }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td class="kecil">{{ d.application.service.nama if d.application and d.application.service else '-' }}</td>
+          <td>
+            <span class="badge {{ 'badge--terbit' if d.status == 'TERBIT' else 'badge--tolak' }}">
+              {{ d.status }}
+            </span>
+          </td>
+          <td class="kecil muted nowrap">{{ d.issued_at|tanggal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="kosong">
+    <h3>Belum ada surat terbit</h3>
+    <p class="kecil mb-0">Nomor surat akan tampil di sini setelah penerbitan pertama.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

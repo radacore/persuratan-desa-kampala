@@ -1,0 +1,101 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% from "partials/paginasi.html" import paginasi with context %}
+{% block isi %}
+
+<form class="card mb-4" method="get" action="/admin/warga">
+  <div class="card__body">
+    <div class="form-grid form-grid--3" style="align-items: end;">
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Cari</span>
+        <input class="input" type="search" name="q" value="{{ filter.q }}"
+               placeholder="NIK, nama, atau dusun">
+      </label>
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Status</span>
+        <select class="select" name="status">
+          <option value="">Semua</option>
+          <option value="aktif" {% if filter.status == 'aktif' %}selected{% endif %}>Aktif</option>
+          <option value="nonaktif" {% if filter.status == 'nonaktif' %}selected{% endif %}>Nonaktif</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="card__foot row">
+    <button class="btn btn--primary btn--sm" type="submit">{{ ikon('search', 16) }} Terapkan</button>
+    <a class="btn btn--ghost btn--sm" href="/admin/warga">Reset</a>
+    <span class="caption" style="margin-left: auto;">{{ info.total }} warga ditemukan</span>
+  </div>
+</form>
+
+{% if boleh_ubah %}
+<details class="card mb-4">
+  <summary class="card__head" style="cursor: pointer;">
+    <div>
+      <h2>Tambah data warga</h2>
+      <p class="caption mb-0">Untuk warga yang datang langsung ke kantor desa.</p>
+    </div>
+  </summary>
+  <form method="post" action="/admin/warga">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="card__body stack">
+      {% set w = none %}
+      {% include "admin/partials/form_warga.html" %}
+    </div>
+    <div class="card__foot row">
+      <button class="btn btn--primary btn--sm" type="submit">Simpan data warga</button>
+    </div>
+  </form>
+</details>
+{% endif %}
+
+<section class="card">
+  {% if baris %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>NIK</th>
+          <th>Nama</th>
+          <th>Dusun / RT-RW</th>
+          <th>No HP</th>
+          <th>Pengajuan</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for w in baris %}
+        <tr>
+          <td class="mono nowrap"><a href="/admin/warga/{{ w.id }}">{{ w.nik }}</a></td>
+          <td>
+            {{ w.nama_lengkap }}
+            {% if w.jenis_kelamin %}<div class="caption">{{ w.jenis_kelamin }}</div>{% endif %}
+          </td>
+          <td class="kecil">
+            {{ w.dusun or '-' }}
+            {% if w.rt or w.rw %}
+            <div class="caption mono">RT {{ w.rt or '-' }}/RW {{ w.rw or '-' }}</div>
+            {% endif %}
+          </td>
+          <td class="mono kecil">{{ w.no_hp or '-' }}</td>
+          <td class="kecil">{{ jumlah.get(w.id, 0) }}</td>
+          <td>
+            <span class="badge {{ 'badge--terbit' if w.aktif else 'badge--netral' }}">
+              {{ 'Aktif' if w.aktif else 'Nonaktif' }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card__foot">{{ paginasi(info) }}</div>
+  {% else %}
+  <div class="kosong">
+    <h3>Belum ada data warga</h3>
+    <p class="kecil mb-0">Data warga otomatis tersimpan saat pengajuan pertama dikirim.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+[
+ {
+  "label": "AJUKAN_DOMISILI",
+  "precision": 0.9375,
+  "recall": 0.9375,
+  "f1": 0.9375,
+  "support": 32
+ },
+ {
+  "label": "AJUKAN_PENGANTAR",
+  "precision": 0.8571428571428571,
+  "recall": 0.967741935483871,
+  "f1": 0.9090909090909091,
+  "support": 31
+ },
+ {
+  "label": "AJUKAN_SKTM",
+  "precision": 0.8333333333333334,
+  "recall": 0.9375,
+  "f1": 0.8823529411764706,
+  "support": 32
+ },
+ {
+  "label": "AJUKAN_USAHA",
+  "precision": 0.9032258064516129,
+  "recall": 0.9032258064516129,
+  "f1": 0.9032258064516129,
+  "support": 31
+ },
+ {
+  "label": "BICARA_PETUGAS",
+  "precision": 0.9642857142857143,
+  "recall": 0.9642857142857143,
+  "f1": 0.9642857142857143,
+  "support": 28
+ },
+ {
+  "label": "CEK_STATUS",
+  "precision": 0.8484848484848485,
+  "recall": 0.875,
+  "f1": 0.8615384615384616,
+  "support": 32
+ },
+ {
+  "label": "INFO_BIAYA",
+  "precision": 0.92,
+  "recall": 0.7666666666666667,
+  "f1": 0.8363636363636363,
+  "support": 30
+ },
+ {
+  "label": "INFO_JAM_LAYANAN",
+  "precision": 0.9333333333333333,
+  "recall": 0.9333333333333333,
+  "f1": 0.9333333333333333,
+  "support": 30
+ },
+ {
+  "label": "INFO_LAMA_PROSES",
+  "precision": 0.78125,
+  "recall": 0.8928571428571429,
+  "f1": 0.8333333333333334,
+  "support": 28
+ },
+ {
+  "label": "INFO_SYARAT_DOMISILI",
+  "precision": 0.9666666666666667,
+  "recall": 0.90625,
+  "f1": 0.9354838709677419,
+  "support": 32
+ },
+ {
+  "label": "INFO_SYARAT_PENGANTAR",
+  "precision": 0.8787878787878788,
+  "recall": 0.9354838709677419,
+  "f1": 0.90625,
+  "support": 31
+ },
+ {
+  "label": "INFO_SYARAT_SKTM",
+  "precision": 0.9310344827586207,
+  "recall": 0.84375,
+  "f1": 0.8852459016393442,
+  "support": 32
+ },
+ {
+  "label": "INFO_SYARAT_UMUM",
+  "precision": 0.8695652173913043,
+  "recall": 0.7407407407407407,
+  "f1": 0.8,
+  "support": 27
+ },
+ {
+  "label": "INFO_SYARAT_USAHA",
+  "precision": 0.8484848484848485,
+  "recall": 0.9032258064516129,
+  "f1": 0.875,
+  "support": 31
+ },
+ {
+  "label": "KOMPLAIN",
+  "precision": 0.9166666666666666,
+  "recall": 0.7586206896551724,
+  "f1": 0.8301886792452831,
+  "support": 29
+ },
+ {
+  "label": "LAINNYA",
+  "precision": 0.7575757575757576,
+  "recall": 0.8064516129032258,
+  "f1": 0.78125,
+  "support": 31
+ },
+ {
+  "label": "SAPA",
+  "precision": 0.8918918918918919,
+  "recall": 0.9166666666666666,
+  "f1": 0.9041095890410958,
+  "support": 36
+ },
+ {
+  "label": "TERIMA_KASIH",
+  "precision": 0.9629629629629629,
+  "recall": 0.9285714285714286,
+  "f1": 0.9454545454545454,
+  "support": 28
+ }
+]

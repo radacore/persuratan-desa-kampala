@@ -1,0 +1,35 @@
+# Reverse proxy + TLS otomatis untuk SILADESA.
+# Isi DOMAIN di .env (mis. siladesa.desakampala.id). Bila kosong, Caddy
+# melayani HTTP biasa di localhost — cukup untuk uji lokal.
+
+{$DOMAIN:localhost} {
+	# Header keamanan dasar. HSTS ditambahkan otomatis oleh Caddy saat HTTPS.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+
+	encode zstd gzip
+
+	# Berkas statis dilayani langsung Caddy agar proses Python tidak terbebani.
+	handle /static/* {
+		root * /srv/static
+		file_server
+		header Cache-Control "public, max-age=86400"
+	}
+
+	handle {
+		reverse_proxy app:8000 {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

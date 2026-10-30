@@ -1,0 +1,522 @@
+[
+ {
+  "kode": "BB-01",
+  "modul": "Autentikasi",
+  "skenario": "Masuk dengan kredensial sah",
+  "masukan": "admin@desakampala.id / Admin#2026",
+  "harapan": "Dialihkan (303) ke panel, cookie sesi terbit",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.127625484001328
+ },
+ {
+  "kode": "BB-02",
+  "modul": "Autentikasi",
+  "skenario": "Masuk dengan sandi salah",
+  "masukan": "admin@desakampala.id / sandi-salah",
+  "harapan": "Ditolak (401), pesan galat, tanpa cookie sesi",
+  "lulus": true,
+  "aktual": "HTTP 401",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-03",
+  "modul": "Autentikasi",
+  "skenario": "Akses panel tanpa sesi",
+  "masukan": "GET /admin/pengajuan",
+  "harapan": "Dialihkan ke halaman masuk (303)",
+  "lulus": true,
+  "aktual": "HTTP 303 \u2192 /admin/login?next=/admin/pengajuan",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-06",
+  "modul": "Otorisasi",
+  "skenario": "Operator membuka menu Pengguna",
+  "masukan": "GET /admin/pengguna sebagai operator",
+  "harapan": "Ditolak (403)",
+  "lulus": true,
+  "aktual": "HTTP 403",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-07",
+  "modul": "Otorisasi",
+  "skenario": "Operator membuka Pengaturan sistem",
+  "masukan": "GET /admin/pengaturan sebagai operator",
+  "harapan": "Ditolak (403)",
+  "lulus": true,
+  "aktual": "HTTP 403",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-08",
+  "modul": "Otorisasi",
+  "skenario": "Sekdes membuka menu Model NLP",
+  "masukan": "GET /admin/model sebagai sekdes",
+  "harapan": "Ditolak (403) \u2014 hanya admin teknis",
+  "lulus": true,
+  "aktual": "HTTP 403",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-04",
+  "modul": "Autentikasi",
+  "skenario": "Mengirim formulir masuk tanpa token CSRF",
+  "masukan": "POST /admin/faq tanpa csrf",
+  "harapan": "Ditolak (403)",
+  "lulus": true,
+  "aktual": "HTTP 403",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-05",
+  "modul": "Autentikasi",
+  "skenario": "Keluar dari sistem",
+  "masukan": "POST /admin/logout",
+  "harapan": "Cookie sesi dihapus, pengguna kembali ke halaman masuk",
+  "lulus": true,
+  "aktual": "HTTP 303; akses ulang \u2192 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-10",
+  "modul": "Percakapan",
+  "skenario": "Membuka sesi percakapan baru",
+  "masukan": "POST /api/v1/chat/sessions",
+  "harapan": "201, sesi terbuat, menu sapaan dikirim",
+  "lulus": true,
+  "aktual": "HTTP 201, 3 baris balasan",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-11",
+  "modul": "Percakapan",
+  "skenario": "Menanyakan syarat layanan",
+  "masukan": "\"syarat surat keterangan domisili apa saja\"",
+  "harapan": "Intent INFO_SYARAT_DOMISILI, jawaban memuat KTP/KK",
+  "lulus": true,
+  "aktual": "intent=INFO_SYARAT_DOMISILI conf=0.834",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-12",
+  "modul": "Percakapan",
+  "skenario": "Menanyakan biaya layanan",
+  "masukan": "\"berapa biaya bikin surat\"",
+  "harapan": "Intent INFO_BIAYA, jawaban menyebut gratis",
+  "lulus": true,
+  "aktual": "intent=INFO_BIAYA conf=0.839",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-13",
+  "modul": "Percakapan",
+  "skenario": "Pertanyaan di luar cakupan",
+  "masukan": "\"bagaimana cara membuat npwp perusahaan asing\"",
+  "harapan": "Fallback + tawaran eskalasi ke petugas",
+  "lulus": true,
+  "aktual": "intent=LAINNYA conf=0.799",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-14",
+  "modul": "Percakapan",
+  "skenario": "Memilih layanan lewat nomor menu",
+  "masukan": "\"1\" pada sesi baru",
+  "harapan": "Beralih ke state CONSENT, menampilkan syarat + pertanyaan izin",
+  "lulus": true,
+  "aktual": "state=CONSENT",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-15",
+  "modul": "Validasi",
+  "skenario": "Mengisi NIK tidak valid (3 digit)",
+  "masukan": "\"123\" pada kolom NIK",
+  "harapan": "Ditolak, pesan menyebut 16 digit, tetap di pengisian",
+  "lulus": true,
+  "aktual": "state=SLOT_FILLING",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-16",
+  "modul": "Percakapan",
+  "skenario": "Membatalkan pengajuan di tengah pengisian",
+  "masukan": "\"batal\" saat pengisian data",
+  "harapan": "Sesi direset ke IDLE, pengajuan dibatalkan",
+  "lulus": true,
+  "aktual": "state=IDLE",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-17",
+  "modul": "Pengajuan",
+  "skenario": "Mengajukan surat domisili lewat percakapan",
+  "masukan": "Menu 1 \u2192 Domisili \u2192 setujui \u2192 isi 14 kolom",
+  "harapan": "Tiket terbentuk berformat APP-{tahun}-{6 digit}",
+  "lulus": true,
+  "aktual": "APP-2026-000007",
+  "detik": 0.19206453299921122
+ },
+ {
+  "kode": "BB-18",
+  "modul": "Keamanan",
+  "skenario": "Menimpa data warga lewat API pengajuan",
+  "masukan": "POST /api/v1/applications dengan NIK warga lain, nama berbeda",
+  "harapan": "Data induk warga tidak berubah",
+  "lulus": true,
+  "aktual": "HTTP 201, pemohon=BB TEST",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-19",
+  "modul": "Keamanan",
+  "skenario": "Melacak tiket tanpa NIK",
+  "masukan": "GET /api/v1/track/{tiket}",
+  "harapan": "Ditolak (422) \u2014 NIK wajib",
+  "lulus": true,
+  "aktual": "HTTP 422",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-20",
+  "modul": "Keamanan",
+  "skenario": "Melacak tiket dengan NIK salah",
+  "masukan": "GET /api/v1/track/{tiket}?nik=<NIK lain>",
+  "harapan": "Tidak ditemukan (404)",
+  "lulus": true,
+  "aktual": "HTTP 404",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-21",
+  "modul": "Pelacakan",
+  "skenario": "Melacak tiket dengan NIK benar",
+  "masukan": "GET /api/v1/track/{tiket}?nik=<NIK benar>",
+  "harapan": "200, status MENUNGGU_VERIFIKASI",
+  "lulus": true,
+  "aktual": "HTTP 200, status=MENUNGGU_VERIFIKASI",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-24",
+  "modul": "Verifikasi",
+  "skenario": "Operator memverifikasi berkas",
+  "masukan": "Ubah status MENUNGGU_VERIFIKASI \u2192 DIPROSES",
+  "harapan": "303, status berubah, tercatat di riwayat",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.03332053700069082
+ },
+ {
+  "kode": "BB-25",
+  "modul": "Penerbitan",
+  "skenario": "Menerbitkan lewat form ubah status",
+  "masukan": "POST status ke=TERBIT",
+  "harapan": "Ditolak, diarahkan ke tombol Terbitkan",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-34",
+  "modul": "Lampiran",
+  "skenario": "Mengunggah lampiran KTP",
+  "masukan": "POST /admin/pengajuan/{id}/lampiran (PNG 80\u00d750)",
+  "harapan": "303, berkas tersimpan dan tampil di detail",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-35",
+  "modul": "Lampiran",
+  "skenario": "Mengunggah berkas berkedok gambar",
+  "masukan": "Berkas berisi HTML dengan ekstensi .png",
+  "harapan": "Ditolak, tidak ada baris lampiran baru",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-26",
+  "modul": "Penerbitan",
+  "skenario": "Sekdes menerbitkan surat",
+  "masukan": "POST /admin/pengajuan/{id}/terbitkan",
+  "harapan": "303, nomor surat dan PDF terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.22778863399798865
+ },
+ {
+  "kode": "BB-27",
+  "modul": "Penerbitan",
+  "skenario": "Menerbitkan ulang surat yang sama",
+  "masukan": "POST terbitkan untuk kedua kali",
+  "harapan": "Ditolak \u2014 satu pengajuan satu surat",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-28",
+  "modul": "Unduh",
+  "skenario": "Warga mengunduh PDF surat",
+  "masukan": "GET /d/eyJkb2MiOjJ9.at16tw.G\u2026",
+  "harapan": "200, application/pdf, berkas berawalan %PDF-",
+  "lulus": true,
+  "aktual": "HTTP 200, 307411 byte",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-29",
+  "modul": "Keamanan",
+  "skenario": "Mengunduh dengan token palsu",
+  "masukan": "GET /d/tebakan-ngawur",
+  "harapan": "Ditolak (410)",
+  "lulus": true,
+  "aktual": "HTTP 410",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-30",
+  "modul": "Verifikasi",
+  "skenario": "Verifikasi dokumen sah lewat QR",
+  "masukan": "GET /api/v1/verify/{token}",
+  "harapan": "valid=true, hasil=VALID, NIK tersamar",
+  "lulus": true,
+  "aktual": "hasil=VALID, nik=7304********4459",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-31",
+  "modul": "Verifikasi",
+  "skenario": "Verifikasi token tidak dikenal",
+  "masukan": "GET /api/v1/verify/token-tidak-ada",
+  "harapan": "200 dengan hasil TIDAK_DITEMUKAN (bukan 500)",
+  "lulus": true,
+  "aktual": "HTTP 200, hasil=TIDAK_DITEMUKAN",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-32",
+  "modul": "Verifikasi",
+  "skenario": "Verifikasi dokumen yang berkasnya diubah",
+  "masukan": "Menyisipkan 8 byte ke PDF di penyimpanan",
+  "harapan": "valid=false, berkas_utuh=false",
+  "lulus": true,
+  "aktual": "valid=False, utuh=False",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-23",
+  "modul": "Pelacakan",
+  "skenario": "Halaman lacak menampilkan tombol unduh",
+  "masukan": "GET /lacak?tiket=APP-2026-000007&nik=<NIK>",
+  "harapan": "Tombol 'Unduh surat' tampil setelah TERBIT",
+  "lulus": true,
+  "aktual": "tombol unduh tampil",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-22",
+  "modul": "Keamanan",
+  "skenario": "Halaman lacak tanpa NIK",
+  "masukan": "GET /lacak?tiket=APP-2026-000007",
+  "harapan": "Riwayat tidak ditampilkan, diminta NIK",
+  "lulus": true,
+  "aktual": "riwayat disembunyikan",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-36",
+  "modul": "Pencabutan",
+  "skenario": "Kepala desa mencabut surat terbit",
+  "masukan": "POST /admin/pengajuan/{id}/cabut",
+  "harapan": "303, dokumen berstatus DIBATALKAN",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-37",
+  "modul": "Pencabutan",
+  "skenario": "Verifikasi surat setelah dicabut",
+  "masukan": "GET /api/v1/verify/{token}",
+  "harapan": "valid=false, hasil=DIBATALKAN",
+  "lulus": true,
+  "aktual": "hasil=DIBATALKAN",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-38",
+  "modul": "Pencabutan",
+  "skenario": "Halaman lacak setelah surat dicabut",
+  "masukan": "GET /lacak?tiket=APP-2026-000007&nik=<NIK>",
+  "harapan": "Tautan unduh hilang, keterangan dicabut tampil",
+  "lulus": true,
+  "aktual": "tautan unduh hilang",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-09",
+  "modul": "Otorisasi",
+  "skenario": "Operator mencoba mencabut surat",
+  "masukan": "POST cabut sebagai operator",
+  "harapan": "Ditolak (403) \u2014 hanya kepala desa",
+  "lulus": true,
+  "aktual": "HTTP 403",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-39",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Ringkasan",
+  "masukan": "GET /admin",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-40",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Pengajuan",
+  "masukan": "GET /admin/pengajuan",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-41",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Data warga",
+  "masukan": "GET /admin/warga",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-42",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Layanan",
+  "masukan": "GET /admin/layanan",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-43",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Template surat",
+  "masukan": "GET /admin/template",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-44",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Nomor surat",
+  "masukan": "GET /admin/nomor",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-45",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman FAQ",
+  "masukan": "GET /admin/faq",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-46",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Pejabat",
+  "masukan": "GET /admin/pejabat",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-47",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Jejak audit",
+  "masukan": "GET /admin/audit",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-48",
+  "modul": "Panel admin",
+  "skenario": "Membuka halaman Laporan",
+  "masukan": "GET /admin/laporan",
+  "harapan": "200 dan halaman terbentuk",
+  "lulus": true,
+  "aktual": "HTTP 200",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-49",
+  "modul": "Panel admin",
+  "skenario": "Mengekspor laporan CSV",
+  "masukan": "GET /admin/laporan.csv",
+  "harapan": "200, text/csv, berpemisah titik koma",
+  "lulus": true,
+  "aktual": "HTTP 200, 9 baris",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-50",
+  "modul": "Panel admin",
+  "skenario": "Menyimpan perubahan katalog layanan",
+  "masukan": "POST /admin/layanan/DOM",
+  "harapan": "303, perubahan tersimpan",
+  "lulus": true,
+  "aktual": "HTTP 303",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-33",
+  "modul": "Keamanan",
+  "skenario": "Token verifikasi melebihi panjang kolom",
+  "masukan": "GET /v/xxxx\u2026 (300 karakter)",
+  "harapan": "Ditolak (404), tidak menyentuh basis data",
+  "lulus": true,
+  "aktual": "HTTP 404",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-51",
+  "modul": "API",
+  "skenario": "Membaca katalog layanan publik",
+  "masukan": "GET /api/v1/services",
+  "harapan": "200, empat layanan MVP aktif",
+  "lulus": true,
+  "aktual": "HTTP 200, 4 layanan",
+  "detik": 0.0
+ },
+ {
+  "kode": "BB-52",
+  "modul": "NLP",
+  "skenario": "Diagnostik prediksi intent",
+  "masukan": "POST /api/v1/predict {\"teks\":\"syarat sktm\"}",
+  "harapan": "200, intent INFO_SYARAT_SKTM, ada alternatif",
+  "lulus": true,
+  "aktual": "intent=INFO_SYARAT_SKTM, conf=0.895",
+  "detik": 0.0
+ }
+]

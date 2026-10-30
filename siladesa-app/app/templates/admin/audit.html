@@ -1,0 +1,88 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% from "partials/paginasi.html" import paginasi with context %}
+{% block isi %}
+
+<div class="flash flash--ok">
+  <span>Jejak audit bersifat hanya-tambah. Setiap perubahan status, penerbitan, dan perubahan data tercatat di sini.</span>
+</div>
+
+<form class="card mb-4" method="get" action="/admin/audit">
+  <div class="card__body">
+    <div class="form-grid form-grid--3" style="align-items: end;">
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Aksi</span>
+        <select class="select" name="aksi">
+          <option value="">Semua aksi</option>
+          {% for aksi, jumlah in aksi_semua %}
+          <option value="{{ aksi }}" {% if filter.aksi == aksi %}selected{% endif %}>
+            {{ aksi }} ({{ jumlah }})
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Aktor</span>
+        <input class="input" type="search" name="q" value="{{ filter.q }}" placeholder="email petugas">
+      </label>
+      <div class="row" style="margin-bottom: 2px;">
+        <button class="btn btn--secondary btn--sm" type="submit">Terapkan</button>
+        <a class="btn btn--ghost btn--sm" href="/admin/audit">Reset</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<section class="card">
+  <div class="card__head">
+    <div>
+      <h2>Jejak audit</h2>
+      <p class="caption mb-0">{{ info.total }} catatan, terbaru di atas.</p>
+    </div>
+  </div>
+  {% if rows %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>Waktu</th><th>Aktor</th><th>Aksi</th><th>Entitas</th><th>Detail</th><th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in rows %}
+        <tr>
+          <td class="kecil nowrap">
+            {{ a.created_at|tanggal }}<br>
+            <span class="muted">{{ a.created_at|waktu }} WITA</span>
+          </td>
+          <td class="kecil">
+            {% if a.actor_email %}
+            <span class="mono">{{ a.actor_email }}</span>
+            {% else %}
+            <span class="muted">sistem</span>
+            {% endif %}
+          </td>
+          <td><span class="pill mono">{{ a.aksi }}</span></td>
+          <td class="kecil">
+            {{ a.entitas }}
+            {% if a.entitas_id %}<span class="muted">#{{ a.entitas_id }}</span>{% endif %}
+          </td>
+          <td class="kecil mono muted" style="max-width: 22rem; overflow-wrap: anywhere;">
+            {% if a.detail %}{{ a.detail|tojson }}{% else %}—{% endif %}
+          </td>
+          <td class="kecil mono muted nowrap">{{ a.ip_address or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card__foot">{{ paginasi(info) }}</div>
+  {% else %}
+  <div class="kosong">
+    <h3>Tidak ada catatan</h3>
+    <p class="kecil mb-0">Coba ubah filter aksi atau aktor.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

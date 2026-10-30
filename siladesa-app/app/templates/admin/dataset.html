@@ -1,0 +1,137 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% from "partials/paginasi.html" import paginasi with context %}
+{% block isi %}
+
+<div class="form-grid form-grid--2" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Sebaran sampel</h2>
+        <p class="caption mb-0">Jumlah sampel aktif per intent. Intent minoritas perlu ditambah.</p>
+      </div>
+    </div>
+    <div class="card__body">
+      {% if sebaran %}
+      {% set maks = sebaran|map(attribute=1)|max %}
+      <div class="stack" style="gap: var(--space-2);">
+        {% for kode, jumlah in sebaran %}
+        <div class="row" style="gap: var(--space-3);">
+          <span class="mono kecil" style="width: 9rem; flex: none;">{{ kode }}</span>
+          <span style="flex: 1; height: 10px; background: var(--color-surface-2); border-radius: 999px; overflow: hidden;">
+            <span style="display: block; height: 100%; width: {{ (jumlah / maks * 100)|round(1) }}%;
+                         background: var(--color-primary);"></span>
+          </span>
+          <span class="angka kecil muted" style="width: 3rem; text-align: right;">{{ jumlah }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted kecil mb-0">Belum ada sampel latih.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Tambah sampel</h2>
+        <p class="caption mb-0">Tulis kalimat seperti yang benar-benar dipakai warga.</p>
+      </div>
+    </div>
+    <form method="post" action="/admin/dataset">
+      <div class="card__body">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="field">
+          <span class="label">Kalimat <span class="wajib">(wajib)</span></span>
+          <textarea class="textarea" name="teks" rows="2" required maxlength="500"
+                    placeholder="mau bikin surat keterangan domisili buat sekolah"></textarea>
+          <span class="bantuan">Hindari menyalin kalimat yang sudah ada persis.</span>
+        </label>
+        <label class="field" style="margin-bottom: 0;">
+          <span class="label">Intent <span class="wajib">(wajib)</span></span>
+          <select class="select" name="intent_kode" required>
+            {% for i in intents %}
+            <option value="{{ i.kode }}">{{ i.kode }} — {{ i.nama }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <div class="card__foot">
+        <button class="btn btn--primary btn--sm" type="submit">{{ ikon('plus', 16) }} Tambah sampel</button>
+        <span class="caption">Latih ulang model agar sampel baru berlaku.</span>
+      </div>
+    </form>
+  </section>
+</div>
+
+<section class="card mt-6">
+  <div class="card__head">
+    <div>
+      <h2>Sampel latih</h2>
+      <p class="caption mb-0">{{ info.total }} sampel sesuai filter.</p>
+    </div>
+  </div>
+
+  <form class="card__body" method="get" action="/admin/dataset"
+        style="border-bottom: 1px solid var(--color-border);">
+    <div class="form-grid form-grid--3" style="align-items: end;">
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Cari kalimat</span>
+        <input class="input" type="search" name="q" value="{{ filter.q }}" placeholder="kata kunci">
+      </label>
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Intent</span>
+        <select class="select" name="intent">
+          <option value="">Semua intent</option>
+          {% for i in intents %}
+          <option value="{{ i.kode }}" {% if filter.intent == i.kode %}selected{% endif %}>{{ i.kode }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="row" style="margin-bottom: 2px;">
+        <button class="btn btn--secondary btn--sm" type="submit">Terapkan</button>
+        <a class="btn btn--ghost btn--sm" href="/admin/dataset">Reset</a>
+      </div>
+    </div>
+  </form>
+
+  {% if rows %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr><th>Kalimat</th><th>Intent</th><th>Sumber</th><th>Ditambah</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for s in rows %}
+        <tr>
+          <td>{{ s.teks }}</td>
+          <td class="mono kecil nowrap">{{ s.intent_kode }}</td>
+          <td>
+            <span class="pill">{{ s.sumber }}</span>
+          </td>
+          <td class="kecil muted nowrap">{{ s.created_at|tanggal }}</td>
+          <td class="kanan">
+            <form method="post" action="/admin/dataset/{{ s.id }}/hapus" style="display: inline;"
+                  data-konfirmasi="Hapus sampel ini dari dataset latih?">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <button class="btn btn--ghost btn--sm" type="submit"
+                      aria-label="Hapus sampel">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card__foot">{{ paginasi(info) }}</div>
+  {% else %}
+  <div class="kosong">
+    <h3>Tidak ada sampel</h3>
+    <p class="kecil mb-0">Ubah filter atau tambahkan sampel baru.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

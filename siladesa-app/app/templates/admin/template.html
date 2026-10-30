@@ -1,0 +1,58 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="flash flash--ok">
+  <span>
+    Hanya satu template aktif per layanan. Menyimpan sebagai versi baru akan menonaktifkan
+    versi sebelumnya, tetapi surat yang sudah terbit tetap merujuk versi lamanya.
+  </span>
+</div>
+
+<section class="card">
+  <div class="card__head">
+    <div>
+      <h2>Template surat</h2>
+      <p class="caption mb-0">Dipakai saat menerbitkan PDF surat.</p>
+    </div>
+  </div>
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>Layanan</th><th>Versi</th><th>Nama template</th>
+          <th>Status</th><th>Dibuat</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in rows %}
+        <tr>
+          <td class="kecil">
+            <span class="mono">{{ t.service.kode }}</span><br>
+            {{ t.service.nama if t.service else '-' }}
+          </td>
+          <td class="mono">v{{ t.versi }}</td>
+          <td><a href="/admin/template/{{ t.id }}">{{ t.nama }}</a></td>
+          <td>
+            <span class="badge {{ 'badge--terbit' if t.aktif else 'badge--netral' }}">
+              {{ 'Aktif' if t.aktif else 'Arsip' }}
+            </span>
+          </td>
+          <td class="kecil muted nowrap">{{ t.created_at|tanggal }}</td>
+          <td class="kanan nowrap">
+            <a class="btn btn--secondary btn--sm" href="/admin/template/{{ t.id }}">Buka</a>
+            {% if not t.aktif %}
+            <form method="post" action="/admin/template/{{ t.id }}/aktifkan" style="display:inline;">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <button class="btn btn--ghost btn--sm" type="submit">Aktifkan</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}

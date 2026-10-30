@@ -1,0 +1,110 @@
+{#- Form data warga. Konteks: `w` (objek Citizen atau none), `opsi_*`. -#}
+<div class="form-grid form-grid--3">
+  <label class="field">
+    <span class="label">NIK</span>
+    <input class="input mono" type="text" name="nik" inputmode="numeric" maxlength="16" required
+           value="{{ w.nik if w else '' }}">
+  </label>
+  <label class="field">
+    <span class="label">Nama lengkap</span>
+    <input class="input" type="text" name="nama_lengkap" maxlength="120" required
+           value="{{ w.nama_lengkap if w else '' }}">
+  </label>
+  <label class="field">
+    <span class="label">Jenis kelamin</span>
+    <select class="select" name="jenis_kelamin">
+      <option value="">—</option>
+      {% for o in opsi_jk %}
+      <option value="{{ o }}" {% if w and w.jenis_kelamin == o %}selected{% endif %}>{{ o }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</div>
+
+<div class="form-grid form-grid--3">
+  <label class="field">
+    <span class="label">Tempat lahir</span>
+    <input class="input" type="text" name="tempat_lahir" maxlength="80"
+           value="{{ w.tempat_lahir or '' if w else '' }}">
+  </label>
+  <label class="field">
+    <span class="label">Tanggal lahir</span>
+    <input class="input" type="date" name="tanggal_lahir"
+           value="{{ w.tanggal_lahir.isoformat() if w and w.tanggal_lahir else '' }}">
+  </label>
+  <label class="field">
+    <span class="label">Agama</span>
+    <select class="select" name="agama">
+      <option value="">—</option>
+      {% if w and w.agama and w.agama not in opsi_agama %}
+      <option value="{{ w.agama }}" selected>{{ w.agama }}</option>
+      {% endif %}
+      {% for o in opsi_agama %}
+      <option value="{{ o }}" {% if w and w.agama == o %}selected{% endif %}>{{ o }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</div>
+
+<div class="form-grid form-grid--2">
+  <label class="field">
+    <span class="label">Status perkawinan</span>
+    <select class="select" name="status_perkawinan">
+      <option value="">—</option>
+      {% if w and w.status_perkawinan and w.status_perkawinan not in opsi_status %}
+      <option value="{{ w.status_perkawinan }}" selected>{{ w.status_perkawinan }}</option>
+      {% endif %}
+      {% for o in opsi_status %}
+      <option value="{{ o }}" {% if w and w.status_perkawinan == o %}selected{% endif %}>{{ o }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span class="label">Pekerjaan</span>
+    <input class="input" type="text" name="pekerjaan" maxlength="80"
+           value="{{ w.pekerjaan or '' if w else '' }}">
+  </label>
+</div>
+
+<label class="field">
+  <span class="label">Alamat</span>
+  <textarea class="input" name="alamat" rows="2">{{ w.alamat or '' if w else '' }}</textarea>
+</label>
+
+<div class="form-grid form-grid--3">
+  <label class="field">
+    <span class="label">Dusun</span>
+    <select class="select" name="dusun">
+      <option value="">—</option>
+      {% if w and w.dusun and w.dusun not in opsi_dusun %}
+      <option value="{{ w.dusun }}" selected>{{ w.dusun }}</option>
+      {% endif %}
+      {% for o in opsi_dusun %}
+      <option value="{{ o }}" {% if w and w.dusun == o %}selected{% endif %}>{{ o }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span class="label">RT</span>
+    <input class="input" type="text" name="rt" maxlength="5"
+           value="{{ w.rt or '' if w else '' }}">
+  </label>
+  <label class="field">
+    <span class="label">RW</span>
+    <input class="input" type="text" name="rw" maxlength="5"
+           value="{{ w.rw or '' if w else '' }}">
+  </label>
+</div>
+
+<div class="form-grid form-grid--2">
+  <label class="field">
+    <span class="label">Nomor HP/WhatsApp</span>
+    <input class="input" type="tel" name="no_hp" maxlength="20"
+           value="{{ w.no_hp or '' if w else '' }}">
+  </label>
+  <label class="field">
+    <span class="label">Email</span>
+    <input class="input" type="email" name="email" maxlength="120"
+           value="{{ w.email or '' if w else '' }}">
+  </label>
+</div>

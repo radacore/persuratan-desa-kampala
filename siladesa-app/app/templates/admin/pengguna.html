@@ -1,0 +1,123 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="form-grid form-grid--2" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Akun pengguna</h2>
+        <p class="caption mb-0">{{ rows|length }} akun. Peran menentukan menu dan aksi yang tersedia.</p>
+      </div>
+    </div>
+    <div class="card__body stack" style="gap: var(--space-3);">
+      {% for u in rows %}
+      <details class="card card--datar" {% if not u.aktif %}style="opacity:.7;"{% endif %}>
+        <summary style="padding: var(--space-3) var(--space-4); cursor: pointer;">
+          <span class="row row--antara">
+            <span>
+              <strong>{{ u.nama_lengkap }}</strong>
+              {% if u.id == user.id %}<span class="pill" style="margin-left: var(--space-2);">Anda</span>{% endif %}
+              <div class="caption mono">{{ u.email }}</div>
+            </span>
+            <span class="row" style="gap: var(--space-2);">
+              <span class="pill">{{ peran_label.get(u.role, u.role) }}</span>
+              <span class="badge {{ 'badge--terbit' if u.aktif else 'badge--netral' }}">
+                {{ 'Aktif' if u.aktif else 'Nonaktif' }}
+              </span>
+            </span>
+          </span>
+          <span class="caption">
+            Login terakhir:
+            {% if u.last_login_at %}{{ u.last_login_at|tanggal }} {{ u.last_login_at|waktu }} WITA
+            {% else %}belum pernah{% endif %}
+          </span>
+        </summary>
+        <div class="card__body" style="border-top: 1px solid var(--color-border);">
+          <form method="post" action="/admin/pengguna/{{ u.id }}">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <div class="form-grid form-grid--2">
+              <label class="field">
+                <span class="label">Nama lengkap</span>
+                <input class="input" type="text" name="nama_lengkap" value="{{ u.nama_lengkap }}"
+                       maxlength="120" required>
+              </label>
+              <label class="field">
+                <span class="label">Peran</span>
+                <select class="select" name="role" {% if u.id == user.id %}disabled{% endif %}>
+                  {% for p in peran %}
+                  <option value="{{ p }}" {% if u.role == p %}selected{% endif %}>{{ peran_label.get(p, p) }}</option>
+                  {% endfor %}
+                </select>
+                {% if u.id == user.id %}
+                <span class="bantuan">Peran akun sendiri tidak dapat diubah.</span>
+                {% endif %}
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Sandi baru</span>
+              <input class="input" type="password" name="password" minlength="8" autocomplete="new-password"
+                     placeholder="Kosongkan bila tidak diubah">
+              <span class="bantuan">Minimal 8 karakter. Disimpan sebagai hash Argon2id.</span>
+            </label>
+            <label class="check mb-4">
+              <input type="checkbox" name="aktif" value="1" {% if u.aktif %}checked{% endif %}
+                     {% if u.id == user.id %}disabled{% endif %}>
+              <span>Akun aktif — dapat masuk ke panel</span>
+            </label>
+            <div class="row">
+              <button class="btn btn--primary btn--sm" type="submit">Simpan perubahan</button>
+              <span class="caption">Email <span class="mono">{{ u.email }}</span> tidak dapat diubah.</span>
+            </div>
+          </form>
+        </div>
+      </details>
+      {% else %}
+      <p class="muted kecil mb-0">Belum ada pengguna.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Tambah pengguna</h2>
+        <p class="caption mb-0">Berikan akun hanya kepada petugas desa yang berwenang.</p>
+      </div>
+    </div>
+    <form method="post" action="/admin/pengguna">
+      <div class="card__body">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="field">
+          <span class="label">Nama lengkap <span class="wajib">(wajib)</span></span>
+          <input class="input" type="text" name="nama_lengkap" required maxlength="120">
+        </label>
+        <label class="field">
+          <span class="label">Email <span class="wajib">(wajib)</span></span>
+          <input class="input" type="email" name="email" required maxlength="160"
+                 autocomplete="off" placeholder="nama@desakampala.id">
+        </label>
+        <label class="field">
+          <span class="label">Peran <span class="wajib">(wajib)</span></span>
+          <select class="select" name="role" required>
+            {% for p in peran %}
+            <option value="{{ p }}">{{ peran_label.get(p, p) }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="field" style="margin-bottom: 0;">
+          <span class="label">Sandi awal <span class="wajib">(wajib)</span></span>
+          <input class="input" type="password" name="password" minlength="8" required
+                 autocomplete="new-password">
+          <span class="bantuan">Sampaikan kepada pengguna lewat saluran aman, minta segera diganti.</span>
+        </label>
+      </div>
+      <div class="card__foot">
+        <button class="btn btn--primary btn--sm" type="submit">{{ ikon('plus', 16) }} Tambah pengguna</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+{% endblock %}

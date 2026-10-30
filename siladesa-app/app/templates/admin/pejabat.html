@@ -1,0 +1,157 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="form-grid form-grid--2" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Pejabat penanda tangan</h2>
+        <p class="caption mb-0">Satu pejabat aktif per jabatan.</p>
+      </div>
+    </div>
+    <div class="card__body stack" style="gap: var(--space-3);">
+      {% for o in rows %}
+      <div class="card card--datar" {% if not o.aktif %}style="opacity:.65;"{% endif %}>
+        <div class="card__body">
+          <div class="row row--antara mb-2">
+            <div>
+              <strong>{{ o.nama }}</strong>
+              <div class="caption">{{ o.jabatan }}</div>
+            </div>
+            <span class="badge {{ 'badge--terbit' if o.aktif and (not o.berlaku_sampai or o.berlaku_sampai >= hari_ini) else 'badge--netral' }}">
+              {% if not o.aktif %}Nonaktif
+              {% elif o.berlaku_sampai and o.berlaku_sampai < hari_ini %}Kedaluwarsa
+              {% else %}Aktif{% endif %}
+            </span>
+          </div>
+          <form method="post" action="/admin/pejabat/{{ o.id }}">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <div class="form-grid form-grid--3">
+              <label class="field">
+                <span class="label">Nama</span>
+                <input class="input" type="text" name="nama" value="{{ o.nama }}" maxlength="120">
+              </label>
+              <label class="field">
+                <span class="label">NIP</span>
+                <input class="input" type="text" name="nip" value="{{ o.nip or '' }}" maxlength="30">
+              </label>
+              <label class="field">
+                <span class="label">Pangkat/golongan</span>
+                <input class="input" type="text" name="pangkat" value="{{ o.pangkat or '' }}" maxlength="60">
+              </label>
+            </div>
+            <div class="form-grid form-grid--2">
+              <label class="field">
+                <span class="label">Berlaku sampai</span>
+                <input class="input" type="date" name="berlaku_sampai"
+                       value="{{ o.berlaku_sampai.isoformat() if o.berlaku_sampai else '' }}">
+                <span class="caption">Kosongkan bila tanpa batas waktu.</span>
+              </label>
+              <label class="field">
+                <span class="label">Urutan</span>
+                <input class="input" type="number" name="urutan" min="0" max="99" value="{{ o.urutan }}">
+              </label>
+            </div>
+            <div class="row">
+              <button class="btn btn--secondary btn--sm" type="submit">Simpan</button>
+            </div>
+          </form>
+
+          <form method="post" action="/admin/pejabat/{{ o.id }}/ttd" enctype="multipart/form-data" class="mt-4">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <span class="label">Scan tanda tangan</span>
+            <div class="caption mb-2">
+              {% if o.ttd_path %}
+                Berkas tersimpan dan akan ditempel pada surat.
+              {% else %}
+                Belum ada berkas; surat terbit dengan ruang tanda tangan kosong.
+              {% endif %}
+              PNG atau JPG, maksimal 2 MB.
+            </div>
+            <div class="row">
+              <input class="input" type="file" name="berkas" accept="image/png,image/jpeg" required>
+              <button class="btn btn--secondary btn--sm" type="submit">Unggah</button>
+            </div>
+          </form>
+          {% if o.ttd_path %}
+          <form method="post" action="/admin/pejabat/{{ o.id }}/ttd/hapus" class="mt-2"
+                data-konfirmasi="Hapus scan tanda tangan {{ o.nama }}?">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn btn--outline-danger btn--sm" type="submit">Hapus tanda tangan</button>
+          </form>
+          {% endif %}
+
+          <form method="post" action="/admin/pejabat/{{ o.id }}/nonaktif" class="mt-4"
+                {% if o.aktif %}data-konfirmasi="Nonaktifkan {{ o.nama }}? Surat baru tidak bisa ditandatangani atas nama beliau."{% endif %}>
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn {{ 'btn--outline-danger' if o.aktif else 'btn--secondary' }} btn--sm"
+                    type="submit">
+              {{ 'Nonaktifkan' if o.aktif else 'Aktifkan kembali' }}
+            </button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <p class="muted kecil mb-0">Belum ada data pejabat.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Tambah pejabat</h2>
+        <p class="caption mb-0">Nama jabatan harus sama dengan kunci pengaturan penandatangan.</p>
+      </div>
+    </div>
+    <form method="post" action="/admin/pejabat">
+      <div class="card__body">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="field">
+          <span class="label">Nama lengkap <span class="wajib">(wajib)</span></span>
+          <input class="input" type="text" name="nama" required maxlength="120">
+        </label>
+        <label class="field">
+          <span class="label">Jabatan <span class="wajib">(wajib)</span></span>
+          <input class="input" type="text" name="jabatan" required maxlength="80"
+                 list="daftar-jabatan" placeholder="Kepala Desa">
+          <datalist id="daftar-jabatan">
+            <option value="Kepala Desa">
+            <option value="Sekretaris Desa">
+            <option value="Kasi Pemerintahan">
+            <option value="Kadus Buntulu">
+            <option value="Kapolsek Arungkeke">
+          </datalist>
+        </label>
+        <div class="form-grid form-grid--2">
+          <label class="field">
+            <span class="label">NIP</span>
+            <input class="input" type="text" name="nip" maxlength="30">
+          </label>
+          <label class="field">
+            <span class="label">Pangkat/golongan</span>
+            <input class="input" type="text" name="pangkat" maxlength="60">
+          </label>
+        </div>
+        <div class="form-grid form-grid--2">
+          <label class="field">
+            <span class="label">Berlaku sampai</span>
+            <input class="input" type="date" name="berlaku_sampai">
+            <span class="caption">Kosongkan bila tanpa batas waktu.</span>
+          </label>
+          <label class="field">
+            <span class="label">Urutan</span>
+            <input class="input" type="number" name="urutan" min="0" max="99" value="0">
+          </label>
+        </div>
+      </div>
+      <div class="card__foot">
+        <button class="btn btn--primary btn--sm" type="submit">{{ ikon('plus', 16) }} Tambah pejabat</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+{% endblock %}

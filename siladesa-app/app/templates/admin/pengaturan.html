@@ -1,0 +1,144 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+{% set identitas = ['nama_desa', 'nama_kecamatan', 'nama_kabupaten', 'alamat_kantor', 'telepon_kantor', 'logo_kop'] %}
+{% set asisten = ['sapaan', 'confidence_tinggi', 'confidence_rendah', 'batas_pengajuan_aktif'] %}
+
+<form method="post" action="/admin/pengaturan">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+
+  <div class="form-grid form-grid--2" style="align-items: start;">
+
+    <div class="stack">
+      <section class="card">
+        <div class="card__head">
+          <div>
+            <h2>Identitas desa</h2>
+            <p class="caption mb-0">Dipakai pada kop surat dan halaman publik.</p>
+          </div>
+        </div>
+        <div class="card__body">
+          {% for r in rows %}
+          {% if r.kunci in identitas %}
+          <label class="field">
+            <span class="label">{{ r.kunci|replace('_', ' ')|title }}</span>
+            <input class="input" type="text" name="nilai_{{ r.id }}" value="{{ r.nilai }}">
+            {% if r.deskripsi %}<span class="bantuan">{{ r.deskripsi }}</span>{% endif %}
+          </label>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head">
+          <div>
+            <h2>Asisten &amp; ambang keyakinan</h2>
+            <p class="caption mb-0">Menentukan kapan asisten menjawab, meminta klarifikasi, atau menyerahkan ke petugas.</p>
+          </div>
+        </div>
+        <div class="card__body">
+          {% for r in rows %}
+          {% if r.kunci in asisten %}
+          <label class="field">
+            <span class="label">{{ r.kunci|replace('_', ' ')|title }}</span>
+            {% if r.tipe == 'int' %}
+            <input class="input" type="number" step="1" name="nilai_{{ r.id }}" value="{{ r.nilai }}">
+            {% elif r.tipe == 'float' %}
+            <input class="input" type="number" step="0.01" min="0" max="1" name="nilai_{{ r.id }}"
+                   value="{{ r.nilai }}">
+            {% else %}
+            <input class="input" type="text" name="nilai_{{ r.id }}" value="{{ r.nilai }}">
+            {% endif %}
+            {% if r.deskripsi %}<span class="bantuan">{{ r.deskripsi }}</span>{% endif %}
+          </label>
+          {% endif %}
+          {% endfor %}
+          <p class="caption mb-0">
+            Urutan ambang: jawab langsung ≥ <span class="mono">confidence_tinggi</span>,
+            klarifikasi di antaranya, fallback &lt; <span class="mono">confidence_rendah</span>.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <div class="card__head">
+          <div>
+            <h2>Penanda tangan &amp; saksi</h2>
+            <p class="caption mb-0">Pilih jabatan pejabat aktif. Data nama diambil dari menu Pejabat.</p>
+          </div>
+        </div>
+        <div class="card__body">
+          {% for r in rows %}
+          {% if r.kunci.startswith('penandatangan_') or r.kunci.startswith('saksi_') %}
+          <label class="field">
+            <span class="label mono">{{ r.kunci }}</span>
+            <select class="select" name="nilai_{{ r.id }}">
+              {% for o in pejabat %}
+              {% if not r.kunci.startswith('penandatangan_') or o.jabatan in jabatan_ttd %}
+              <option value="{{ o.jabatan }}" {% if r.nilai == o.jabatan %}selected{% endif %}>
+                {{ o.jabatan }} — {{ o.nama }}
+              </option>
+              {% endif %}
+              {% endfor %}
+              {% if r.nilai not in pejabat|map(attribute='jabatan')|list %}
+              <option value="{{ r.nilai }}" selected>{{ r.nilai }} (tidak ada pejabat aktif)</option>
+              {% endif %}
+            </select>
+            {% if r.kunci.startswith('penandatangan_') %}
+            <span class="bantuan">Hanya Kepala Desa atau Sekretaris Desa yang boleh menandatangani surat.</span>
+            {% elif r.deskripsi %}<span class="bantuan">{{ r.deskripsi }}</span>{% endif %}
+          </label>
+          {% endif %}
+          {% endfor %}
+          <a class="btn btn--ghost btn--sm" href="/admin/pejabat">Kelola pejabat</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head">
+          <div>
+            <h2>Lingkungan aplikasi</h2>
+            <p class="caption mb-0">Nilai ini berasal dari berkas <span class="mono">.env</span>, bukan basis data.</p>
+          </div>
+        </div>
+        <div class="card__body">
+          <dl class="kv">
+            <dt>Mode</dt>
+            <dd><span class="pill">{{ env.app_env }}</span></dd>
+            <dt>Alamat publik</dt>
+            <dd class="mono kecil">{{ env.app_url }}</dd>
+            <dt>Basis data</dt>
+            <dd class="mono kecil">{{ env.database }}</dd>
+            <dt>Bot Telegram</dt>
+            <dd>
+              <span class="badge {{ 'badge--terbit' if env.telegram else 'badge--netral' }}">
+                {{ 'Terpasang' if env.telegram else 'Belum diatur' }}
+              </span>
+            </dd>
+            <dt>WhatsApp (Fonnte)</dt>
+            <dd>
+              <span class="badge {{ 'badge--terbit' if env.fonnte else 'badge--netral' }}">
+                {{ 'Terpasang' if env.fonnte else 'Belum diatur' }}
+              </span>
+            </dd>
+          </dl>
+          <p class="caption mb-0">
+            Rahasia (token bot, kunci API) tidak pernah ditampilkan di panel.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="row mt-6">
+    <button class="btn btn--primary" type="submit">Simpan pengaturan</button>
+    <a class="btn btn--ghost" href="/admin">Batal</a>
+    <span class="caption" style="margin-left: auto;">Perubahan langsung dipakai pada permintaan berikutnya.</span>
+  </div>
+</form>
+
+{% endblock %}

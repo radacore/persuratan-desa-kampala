@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block judul %}Verifikasi dokumen — {{ nama_aplikasi }}{% endblock %}
+
+{% block isi %}
+<section class="bagian">
+  <div class="container container--sempit">
+    {% if hasil.hasil == 'TIDAK_DITEMUKAN' %}
+    <div class="hasil hasil--tidak">
+      <div class="hasil__status">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Dokumen tidak ditemukan
+      </div>
+      <p class="mt-4" style="margin-bottom: 0;">{{ hasil.pesan }}</p>
+    </div>
+
+    {% elif hasil.valid %}
+    <div class="hasil hasil--sah">
+      <div class="hasil__status">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        Dokumen sah
+      </div>
+      <p class="mt-4">{{ hasil.pesan }}</p>
+
+      <dl class="kv" style="margin-top: var(--space-4);">
+        <dt>Nomor surat</dt>
+        <dd class="mono">{{ hasil.nomor_surat }}</dd>
+        <dt>Jenis layanan</dt>
+        <dd>{{ hasil.jenis_surat or '-' }}</dd>
+        <dt>Nama pemohon</dt>
+        <dd>{{ hasil.nama_pemohon or '-' }}</dd>
+        <dt>NIK</dt>
+        <dd class="mono">{{ hasil.nik_masked }}</dd>
+        <dt>Tanggal terbit</dt>
+        <dd>{{ hasil.tanggal_terbit|tanggal }}</dd>
+        <dt>Sidik jari dokumen (SHA-256)</dt>
+        <dd class="mono kecil" style="word-break: break-all;">{{ hasil.sha256 }}</dd>
+      </dl>
+    </div>
+
+    {% else %}
+    <div class="hasil hasil--tidak">
+      <div class="hasil__status">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        Dokumen dibatalkan
+      </div>
+      <p class="mt-4">{{ hasil.pesan }}</p>
+
+      <dl class="kv" style="margin-top: var(--space-4);">
+        <dt>Nomor surat</dt>
+        <dd class="mono">{{ hasil.nomor_surat }}</dd>
+        <dt>Jenis layanan</dt>
+        <dd>{{ hasil.jenis_surat or '-' }}</dd>
+        <dt>Nama pemohon</dt>
+        <dd>{{ hasil.nama_pemohon or '-' }}</dd>
+        <dt>Dibatalkan pada</dt>
+        <dd>{{ hasil.dibatalkan_pada|tanggal }}</dd>
+        {% if hasil.alasan_pembatalan %}
+        <dt>Alasan</dt>
+        <dd>{{ hasil.alasan_pembatalan }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+    {% endif %}
+
+    <div class="card card--datar mt-6">
+      <div class="card__body kecil muted">
+        Halaman ini hanya menampilkan ringkasan. Berkas PDF asli tidak pernah disajikan di
+        sini. Bila Anda ragu, cocokkan nomor surat dengan arsip kantor desa.
+      </div>
+    </div>
+
+    <p class="caption mt-6">Token verifikasi: <span class="mono">{{ token[:12] }}…</span></p>
+  </div>
+</section>
+{% endblock %}

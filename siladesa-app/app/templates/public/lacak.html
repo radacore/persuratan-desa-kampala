@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block judul %}Lacak pengajuan — {{ nama_aplikasi }}{% endblock %}
+
+{% block isi %}
+<section class="bagian">
+  <div class="container container--sempit">
+    <div class="bagian__judul">
+      <h2>Lacak pengajuan surat</h2>
+      <p>Masukkan nomor tiket yang Anda terima setelah mengirim pengajuan.</p>
+    </div>
+
+    <form class="card" method="get" action="/lacak">
+      <div class="card__body">
+        <div class="form-grid form-grid--2">
+          <label class="field" style="margin-bottom: 0;">
+            <span class="label">Nomor tiket <span class="wajib">(wajib)</span></span>
+            <input class="input" type="text" name="tiket" value="{{ tiket }}"
+                   placeholder="APP-2026-000128" autocomplete="off" required
+                   style="font-family: var(--font-mono); text-transform: uppercase;">
+            <span class="bantuan">Contoh: APP-2026-000128</span>
+          </label>
+          <label class="field" style="margin-bottom: 0;">
+            <span class="label">NIK pemohon <span class="wajib">(wajib)</span></span>
+            <input class="input" type="text" name="nik" value="{{ nik }}"
+                   inputmode="numeric" maxlength="16" placeholder="16 digit NIK"
+                   autocomplete="off" required>
+            <span class="bantuan">NIK pemohon yang dipakai saat mengajukan.</span>
+          </label>
+        </div>
+      </div>
+      <div class="card__foot row">
+        <button class="btn btn--primary" type="submit">Lacak</button>
+        <a class="btn btn--ghost" href="/">Kembali</a>
+      </div>
+    </form>
+
+    {% if pesan %}
+    <div class="flash flash--err" role="alert" style="margin-top: var(--space-6);">
+      <span>{{ pesan }}</span>
+    </div>
+    {% endif %}
+
+    {% if hasil %}
+    <div class="card mt-6">
+      <div class="card__head">
+        <div>
+          <span class="caption">Nomor tiket</span>
+          <h3 class="mono" style="margin: 0;">{{ hasil.ticket_no }}</h3>
+        </div>
+        <span class="badge {{ hasil.status|status_kelas }}">{{ hasil.status|status_label }}</span>
+      </div>
+      <div class="card__body">
+        <dl class="kv">
+          <dt>Layanan</dt>
+          <dd>{{ hasil.service_nama }}</dd>
+          {% if hasil.nomor_surat %}
+          <dt>Nomor surat</dt>
+          <dd class="mono">{{ hasil.nomor_surat }}</dd>
+          {% elif hasil.nomor_surat_dicabut %}
+          <dt>Nomor surat</dt>
+          <dd class="mono">{{ hasil.nomor_surat_dicabut }} <span class="badge badge--batal">dicabut</span></dd>
+          {% endif %}
+          <dt>Pemohon</dt>
+          <dd>{{ hasil.pemohon }}</dd>
+          <dt>Diajukan</dt>
+          <dd>{{ hasil.dibuat|tanggal }} · {{ hasil.dibuat|waktu }} WITA</dd>
+          <dt>Terakhir diperbarui</dt>
+          <dd>{{ hasil.diperbarui|sejak }}</dd>
+          {% if hasil.catatan %}
+          <dt>Catatan petugas</dt>
+          <dd>{{ hasil.catatan }}</dd>
+          {% endif %}
+        </dl>
+
+        {% if hasil.unduh_url %}
+        <div class="flash flash--ok" style="margin-top: var(--space-4);">
+          <div>
+            <strong>Surat sudah terbit.</strong>
+            <div class="kecil">Unduh PDF melalui tautan di bawah. Tautan berlaku terbatas.</div>
+          </div>
+          <a class="btn btn--primary btn--sm" href="{{ hasil.unduh_url }}" style="margin-left: auto;">
+            Unduh surat
+          </a>
+        </div>
+        {% elif hasil.berkas_dicabut %}
+        <div class="flash flash--err" style="margin-top: var(--space-4);">
+          <span>Surat ini telah dicabut oleh desa dan tidak dapat diunduh lagi.</span>
+        </div>
+        {% elif hasil.berkas_belum_siap %}
+        <div class="flash flash--err" style="margin-top: var(--space-4);">
+          <span>Berkas surat belum tersedia. Hubungi petugas desa untuk menerbitkan ulang.</span>
+        </div>
+        {% endif %}
+
+        {% if hasil.riwayat %}
+        <h3 class="mt-6">Riwayat proses</h3>
+        <ol class="timeline">
+          {% for e in hasil.riwayat|reverse %}
+          <li data-selesai="1">
+            <strong>{{ e.ke|status_label }}</strong>
+            <span>{{ e.waktu|tanggal }} {{ e.waktu|waktu }} · {{ e.aktor or 'Sistem' }}</span>
+            {% if e.catatan %}<div class="kecil muted">{{ e.catatan }}</div>{% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card card--datar mt-6">
+      <div class="card__body kecil muted">
+        <strong style="color: var(--slate-700);">Tiket hilang?</strong>
+        Hubungi kantor desa dengan menyebutkan nama lengkap dan NIK Anda. Petugas dapat
+        mencarikan nomor tiket melalui panel pengajuan.
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

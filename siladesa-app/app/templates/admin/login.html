@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk petugas — {{ nama_aplikasi }}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="login">
+  <section class="login__kiri">
+    <div>
+      <div class="row" style="gap: var(--space-3);">
+        <img src="/static/favicon.svg" alt="" width="40" height="40">
+        <strong style="letter-spacing: .1em; color: #fff;">{{ nama_aplikasi }}</strong>
+      </div>
+      <h2 style="margin-top: var(--space-10);">Panel petugas {{ nama_desa }}.</h2>
+      <p>
+        Verifikasi pengajuan, terbitkan surat, dan kelola layanan warga. Semua tindakan
+        tercatat pada jejak audit.
+      </p>
+    </div>
+    <ul class="login__daftar">
+      <li>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Peran terpisah: operator, sekdes, kepala desa, admin teknis
+      </li>
+      <li>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Surat terbit dengan nomor resmi dan QR verifikasi
+      </li>
+      <li>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Data warga tidak pernah ditampilkan penuh di halaman publik
+      </li>
+    </ul>
+    <p class="caption" style="color: #7fa98c;">{{ nama_desa }} · Kecamatan Arungkeke</p>
+  </section>
+
+  <section class="login__kanan">
+    <div class="login__kotak">
+      <div class="login__mark">
+        <img src="/static/favicon.svg" alt="" width="30" height="30">
+        {{ nama_aplikasi }}
+      </div>
+      <h1>Masuk ke panel</h1>
+      <p class="muted kecil">Gunakan akun petugas yang diberikan admin teknis.</p>
+
+      {% if galat %}
+      <div class="flash flash--err" role="alert">
+        <span>{{ galat }}</span>
+      </div>
+      {% endif %}
+
+      <form method="post" action="/admin/login" class="mt-6">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        <label class="field">
+          <span class="label">Email <span class="wajib">(wajib)</span></span>
+          <input class="input" type="email" name="email" value="{{ email or '' }}"
+                 autocomplete="username" required autofocus>
+        </label>
+        <label class="field">
+          <span class="label">Kata sandi <span class="wajib">(wajib)</span></span>
+          <input class="input" type="password" name="password"
+                 autocomplete="current-password" required>
+        </label>
+        <button class="btn btn--primary btn--blok btn--lg" type="submit">Masuk</button>
+      </form>
+
+      <p class="caption mt-6">
+        Lupa kata sandi? Hubungi admin teknis desa. Sesi berakhir otomatis setelah 8 jam.
+      </p>
+      <p class="caption"><a href="/">&larr; Kembali ke situs layanan</a></p>
+    </div>
+  </section>
+</div>
+</body>
+</html>

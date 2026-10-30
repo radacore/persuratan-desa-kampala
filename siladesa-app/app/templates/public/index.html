@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block judul %}Layanan Administrasi {{ nama_desa }} — {{ nama_aplikasi }}{% endblock %}
+
+{% block isi %}
+<section class="hero">
+  <div class="container hero__grid">
+    <div>
+      <span class="pill">Pelayanan administrasi daring</span>
+      <h1 style="margin-top: var(--space-4);">Urus surat desa tanpa harus antre di kantor.</h1>
+      <p>
+        Ajukan surat keterangan domisili, surat keterangan tidak mampu, surat keterangan
+        usaha, dan surat pengantar melalui percakapan. Pantau statusnya kapan saja dengan
+        nomor tiket.
+      </p>
+      <div class="hero__aksi">
+        <button class="btn btn--primary btn--lg" type="button" data-buka-chat>
+          Mulai ajukan surat
+        </button>
+        <a class="btn btn--secondary btn--lg" href="/lacak">Lacak pengajuan</a>
+      </div>
+      <p class="caption" style="margin-top: var(--space-4);">
+        Tanpa unggah berkas · Cukup NIK dan data diri · Surat diambil atau diunduh dalam format PDF
+      </p>
+    </div>
+
+    <div class="hero__kartu">
+      <h2>Yang bisa diselesaikan di sini</h2>
+      <ul class="login__daftar" style="color: var(--slate-600);">
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Tanya syarat dan prosedur surat
+        </li>
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Isi formulir lewat percakapan, tanpa aplikasi tambahan
+        </li>
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Terima nomor tiket untuk memantau proses
+        </li>
+        <li>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Verifikasi keaslian surat melalui QR code
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="bagian" id="layanan">
+  <div class="container">
+    <div class="bagian__judul">
+      <h2>Layanan yang tersedia</h2>
+      <p>Empat layanan administrasi yang paling sering diminta warga {{ nama_desa }}.</p>
+    </div>
+
+    <div class="layanan-grid">
+      {% for s in layanan %}
+      <article class="layanan-kartu">
+        <h3>{{ s.nama }}</h3>
+        <p>{{ s.deskripsi or 'Layanan administrasi desa.' }}</p>
+        {% if s.syarat %}
+        <p class="caption" style="margin-bottom: var(--space-2);">Syarat utama:</p>
+        <ul class="kecil muted" style="margin: 0 0 var(--space-3); padding-left: 18px;">
+          {% for syarat in s.syarat[:3] %}<li>{{ syarat }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        <div class="layanan-kartu__kaki">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Estimasi {{ s.estimasi_hari }} hari kerja
+          <button class="btn btn--ghost btn--sm" type="button" data-buka-chat style="margin-left:auto;">
+            Ajukan
+          </button>
+        </div>
+      </article>
+      {% else %}
+      <p class="muted">Belum ada layanan aktif. Hubungi kantor desa.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="bagian bagian--abu">
+  <div class="container">
+    <div class="bagian__judul">
+      <h2>Tiga langkah, tanpa berkas fisik</h2>
+      <p>Proses yang sama berlaku untuk semua layanan.</p>
+    </div>
+    <div class="langkah">
+      <div class="langkah__item">
+        <span class="langkah__nomor">1</span>
+        <h3>Ceritakan kebutuhan Anda</h3>
+        <p class="kecil muted mb-0">
+          Ketik "saya mau buat surat domisili" atau pilih menu. Asisten akan menjelaskan
+          syarat dan langsung menanyakan data yang diperlukan.
+        </p>
+      </div>
+      <div class="langkah__item">
+        <span class="langkah__nomor">2</span>
+        <h3>Periksa dan kirim</h3>
+        <p class="kecil muted mb-0">
+          Anda menerima ringkasan data sebelum dikirim. Setelah dikonfirmasi, pengajuan
+          masuk ke petugas dan Anda menerima nomor tiket.
+        </p>
+      </div>
+      <div class="langkah__item">
+        <span class="langkah__nomor">3</span>
+        <h3>Pantau sampai terbit</h3>
+        <p class="kecil muted mb-0">
+          Gunakan nomor tiket di halaman lacak. Saat surat terbit, PDF dapat diunduh dan
+          keasliannya diperiksa lewat QR code.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bagian">
+  <div class="container row row--antara row--atas" style="gap: var(--space-8);">
+    <div style="max-width: 56ch;">
+      <h2>Surat desa kini bisa diperiksa keasliannya</h2>
+      <p class="muted">
+        Setiap surat yang diterbitkan {{ nama_aplikasi }} membawa QR code unik. Pemindai
+        akan melihat nomor surat, jenis layanan, dan nama pemohon (NIK disamarkan) — bukan
+        berkas suratnya. Surat yang dicabut akan ditandai tidak berlaku.
+      </p>
+      <a class="btn btn--secondary" href="/unduh">Pelajari cara mengunduh</a>
+    </div>
+    <div class="hero__kartu" style="min-width: 260px;">
+      <h2>Butuh bantuan?</h2>
+      <p class="kecil muted">
+        Hubungi kantor desa pada jam kerja, atau gunakan asisten di pojok kanan bawah.
+        Untuk pertanyaan yang tidak dikenali, asisten akan menawarkan sambung ke petugas.
+      </p>
+      <button class="btn btn--primary btn--blok" type="button" data-buka-chat>Tanya asisten</button>
+    </div>
+  </div>
+</section>
+{% endblock %}

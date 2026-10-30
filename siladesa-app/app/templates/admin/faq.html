@@ -1,0 +1,130 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="form-grid form-grid--2" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Daftar FAQ</h2>
+        <p class="caption mb-0">{{ rows|length }} entri. Pencocokan memakai kemiripan teks.</p>
+      </div>
+    </div>
+    <div class="card__body stack" style="gap: var(--space-3);">
+      {% for f in rows %}
+      <details class="card card--datar" {% if not f.aktif %}style="opacity:.65;"{% endif %}>
+        <summary style="padding: var(--space-3) var(--space-4); cursor: pointer;">
+          <span class="row row--antara">
+            <span class="tebal">{{ f.pertanyaan }}</span>
+            <span class="badge {{ 'badge--terbit' if f.aktif else 'badge--netral' }}">
+              {{ 'Aktif' if f.aktif else 'Nonaktif' }}
+            </span>
+          </span>
+          <span class="caption">
+            {{ f.intent.kode if f.intent else 'tanpa intent' }} · urutan {{ f.urutan }}
+          </span>
+        </summary>
+        <div class="card__body" style="border-top: 1px solid var(--color-border);">
+          <form method="post" action="/admin/faq/{{ f.id }}">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <label class="field">
+              <span class="label">Pertanyaan</span>
+              <input class="input" type="text" name="pertanyaan" value="{{ f.pertanyaan }}" maxlength="300">
+            </label>
+            <label class="field">
+              <span class="label">Jawaban</span>
+              <textarea class="textarea" name="jawaban" rows="5">{{ f.jawaban }}</textarea>
+            </label>
+            <div class="form-grid form-grid--2">
+              <label class="field">
+                <span class="label">Intent</span>
+                <select class="select" name="intent_id">
+                  <option value="">— tanpa intent —</option>
+                  {% for i in intents %}
+                  <option value="{{ i.id }}" {% if f.intent_id == i.id %}selected{% endif %}>
+                    {{ i.kode }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="field">
+                <span class="label">Urutan</span>
+                <input class="input" type="number" name="urutan" min="0" max="999" value="{{ f.urutan }}">
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Kata kunci</span>
+              <input class="input" type="text" name="kata_kunci"
+                     value="{{ (f.kata_kunci or [])|join(', ') }}">
+              <span class="bantuan">Pisahkan dengan koma. Membantu pencocokan cepat.</span>
+            </label>
+            <label class="check mb-4">
+              <input type="checkbox" name="aktif" value="1" {% if f.aktif %}checked{% endif %}>
+              <span>Tampilkan sebagai jawaban asisten</span>
+            </label>
+            <div class="row">
+              <button class="btn btn--primary btn--sm" type="submit">Simpan</button>
+            </div>
+          </form>
+          {% if f.aktif %}
+          <form method="post" action="/admin/faq/{{ f.id }}/hapus" class="mt-4"
+                data-konfirmasi="Nonaktifkan FAQ ini? Riwayat percakapan tetap tersimpan.">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn btn--outline-danger btn--sm" type="submit">Nonaktifkan</button>
+          </form>
+          {% endif %}
+        </div>
+      </details>
+      {% else %}
+      <p class="muted kecil mb-0">Belum ada FAQ. Tambahkan lewat formulir di samping.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Tambah FAQ</h2>
+        <p class="caption mb-0">Jawaban sebaiknya 1–3 kalimat dan tidak memuat janji tanggal.</p>
+      </div>
+    </div>
+    <form method="post" action="/admin/faq">
+      <div class="card__body">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="field">
+          <span class="label">Pertanyaan <span class="wajib">(wajib)</span></span>
+          <input class="input" type="text" name="pertanyaan" required maxlength="300"
+                 placeholder="Apa syarat membuat surat keterangan domisili?">
+        </label>
+        <label class="field">
+          <span class="label">Jawaban <span class="wajib">(wajib)</span></span>
+          <textarea class="textarea" name="jawaban" rows="5" required></textarea>
+        </label>
+        <label class="field">
+          <span class="label">Intent terkait</span>
+          <select class="select" name="intent_id">
+            <option value="">— tanpa intent —</option>
+            {% for i in intents %}
+            <option value="{{ i.id }}">{{ i.kode }}</option>
+            {% endfor %}
+          </select>
+          <span class="bantuan">Bila dipilih, FAQ tampil sebagai jawaban untuk intent tersebut.</span>
+        </label>
+        <label class="field">
+          <span class="label">Kata kunci</span>
+          <input class="input" type="text" name="kata_kunci" placeholder="syarat, domisili, pindah">
+        </label>
+        <label class="field" style="margin-bottom: 0;">
+          <span class="label">Urutan</span>
+          <input class="input" type="number" name="urutan" min="0" max="999" value="0">
+        </label>
+      </div>
+      <div class="card__foot">
+        <button class="btn btn--primary btn--sm" type="submit">{{ ikon('plus', 16) }} Tambah FAQ</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Akses ditolak — {{ nama_aplikasi }}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <main class="galat-halaman">
+    <div class="galat-kotak">
+      <div class="kode">GALAT 403</div>
+      <h1>Akses ditolak</h1>
+      <p class="muted">
+        {{ pesan_galat or "Peran akun Anda tidak berhak membuka bagian ini." }}
+      </p>
+      <div class="row" style="justify-content: center; margin-top: var(--space-5);">
+        <a class="btn btn--primary" href="/admin">Ke ringkasan</a>
+        <a class="btn btn--secondary" href="/admin/login">Masuk dengan akun lain</a>
+      </div>
+      <p class="caption" style="margin-top: var(--space-5);">
+        Bila Anda merasa berhak, hubungi admin teknis desa untuk penyesuaian peran.
+      </p>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,136 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<form class="card mb-4" method="get" action="/admin/laporan">
+  <div class="card__body">
+    <div class="form-grid form-grid--3" style="align-items: end;">
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Dari tanggal</span>
+        <input class="input" type="date" name="mulai" value="{{ mulai }}">
+      </label>
+      <label class="field" style="margin-bottom: 0;">
+        <span class="label">Sampai tanggal</span>
+        <input class="input" type="date" name="selesai" value="{{ selesai }}">
+      </label>
+      <div class="row" style="margin-bottom: 2px;">
+        <button class="btn btn--primary btn--sm" type="submit">Tampilkan</button>
+        <a class="btn btn--secondary btn--sm"
+           href="/admin/laporan.csv?mulai={{ mulai }}&amp;selesai={{ selesai }}">
+          {{ ikon('download', 16) }} Unduh CSV
+        </a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));">
+  <div class="stat stat--aksen">
+    <div class="stat__label">Pengajuan masuk</div>
+    <div class="stat__nilai">{{ data.jumlah }}</div>
+    <div class="stat__catatan">{{ mulai }} — {{ selesai }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">Rata-rata waktu terbit</div>
+    <div class="stat__nilai">
+      {% if data.rata_jam is not none %}
+        {{ '%.1f'|format(data.rata_jam) }}<span style="font-size: 1rem;"> jam</span>
+      {% else %}—{% endif %}
+    </div>
+    <div class="stat__catatan">Dari pengajuan dikirim sampai PDF terbit</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">Pemindaian QR sah</div>
+    <div class="stat__nilai">{{ data.scans }}</div>
+    <div class="stat__catatan">Halaman verifikasi publik</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">Kepuasan warga</div>
+    <div class="stat__nilai">
+      {% if data.rating %}{{ '%.1f'|format(data.rating) }}<span style="font-size: 1rem;"> / 5</span>
+      {% else %}—{% endif %}
+    </div>
+    <div class="stat__catatan">Rata-rata umpan balik</div>
+  </div>
+</div>
+
+<div class="form-grid form-grid--2 mt-6" style="align-items: start;">
+  <section class="card">
+    <div class="card__head"><h2>Menurut status</h2></div>
+    {% if data.per_status %}
+    <div class="tabel-wrap">
+      <table class="tabel tabel--rapat">
+        <thead><tr><th>Status</th><th class="angka">Jumlah</th><th class="angka">Porsi</th></tr></thead>
+        <tbody>
+          {% for status, jumlah in data.per_status %}
+          <tr>
+            <td><span class="badge {{ status|status_kelas }}">{{ status|status_label }}</span></td>
+            <td class="angka">{{ jumlah }}</td>
+            <td class="angka muted">
+              {{ '%.0f'|format(jumlah / data.jumlah * 100) if data.jumlah else 0 }}%
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="kosong"><p class="kecil mb-0">Tidak ada data pada rentang ini.</p></div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card__head"><h2>Menurut layanan</h2></div>
+    {% if data.per_layanan %}
+    <div class="tabel-wrap">
+      <table class="tabel tabel--rapat">
+        <thead><tr><th>Layanan</th><th class="angka">Jumlah</th><th class="angka">Porsi</th></tr></thead>
+        <tbody>
+          {% for nama, jumlah in data.per_layanan %}
+          <tr>
+            <td>{{ nama }}</td>
+            <td class="angka">{{ jumlah }}</td>
+            <td class="angka muted">
+              {{ '%.0f'|format(jumlah / data.jumlah * 100) if data.jumlah else 0 }}%
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="kosong"><p class="kecil mb-0">Tidak ada data pada rentang ini.</p></div>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card mt-6">
+  <div class="card__head"><h2>Menurut kanal</h2></div>
+  {% if data.per_kanal %}
+  <div class="tabel-wrap">
+    <table class="tabel tabel--rapat">
+      <thead><tr><th>Kanal</th><th class="angka">Jumlah</th><th class="angka">Porsi</th></tr></thead>
+      <tbody>
+        {% for kanal, jumlah in data.per_kanal %}
+        <tr>
+          <td><span class="pill">{{ kanal }}</span></td>
+          <td class="angka">{{ jumlah }}</td>
+          <td class="angka muted">
+            {{ '%.0f'|format(jumlah / data.jumlah * 100) if data.jumlah else 0 }}%
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="kosong"><p class="kecil mb-0">Tidak ada data pada rentang ini.</p></div>
+  {% endif %}
+</section>
+
+<p class="caption mt-4">
+  CSV memakai pemisah titik koma dan BOM UTF-8 agar terbaca langsung di Excel.
+  Data pribadi pemohon ikut terekspor — simpan berkas sesuai kewenangan.
+</p>
+
+{% endblock %}

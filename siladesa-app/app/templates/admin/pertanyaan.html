@@ -1,0 +1,76 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% from "partials/paginasi.html" import paginasi with context %}
+{% block isi %}
+
+<div class="flash flash--ok">
+  <span>
+    Pertanyaan di halaman ini tidak dikenali model atau keyakinannya rendah.
+    Memberi label akan menambahkannya ke dataset latih; latih ulang model agar berlaku.
+  </span>
+</div>
+
+<section class="card">
+  <div class="card__head">
+    <div>
+      <h2>Antrean pertanyaan gagal</h2>
+      <p class="caption mb-0">{{ info.total }} pertanyaan, terbaru di atas.</p>
+    </div>
+  </div>
+
+  {% if rows %}
+  <div class="card__body stack">
+    {% for m in rows %}
+    <div class="card card--datar">
+      <div class="card__body">
+        <p class="mb-2" style="white-space: pre-wrap;">{{ m.isi }}</p>
+        <div class="row kecil muted mb-4" style="gap: var(--space-3); flex-wrap: wrap;">
+          <span>{{ m.created_at|tanggal }} {{ m.created_at|waktu }} WITA</span>
+          <span>Kanal: {{ m.session.channel if m.session else '-' }}</span>
+          {% if m.session and m.session.kontak %}
+          <span class="mono">{{ m.session.kontak|mask_nik }}</span>
+          {% endif %}
+          <span>
+            Prediksi:
+            {% if m.intent_kode %}
+            <span class="mono">{{ m.intent_kode }}</span>
+            {% else %}
+            <span>tidak ada</span>
+            {% endif %}
+            {% if m.confidence is not none %}
+            ({{ '%.2f'|format(m.confidence) }})
+            {% endif %}
+          </span>
+        </div>
+
+        <form method="post" action="/admin/pertanyaan/label" class="row"
+              style="align-items: flex-end; gap: var(--space-2); flex-wrap: wrap;">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="teks" value="{{ m.isi }}">
+          <label class="field" style="margin-bottom: 0; min-width: 260px; flex: 1;">
+            <span class="label">Label intent yang benar</span>
+            <select class="select" name="intent_kode" required>
+              {% for i in intents %}
+              <option value="{{ i.kode }}" {% if m.intent_kode == i.kode %}selected{% endif %}>
+                {{ i.kode }} — {{ i.nama }}
+              </option>
+              {% endfor %}
+            </select>
+          </label>
+          <button class="btn btn--primary btn--sm" type="submit">Beri label</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="card__foot">{{ paginasi(info) }}</div>
+  {% else %}
+  <div class="kosong">
+    <h3>Tidak ada pertanyaan gagal</h3>
+    <p class="kecil mb-0">Semua pertanyaan warga berhasil dikenali model.</p>
+    <a class="btn btn--secondary btn--sm mt-4" href="/admin/faq">Kelola FAQ</a>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+{% if model_aktif %}
+<div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+  <div class="stat stat--aksen">
+    <div class="stat__label">Model aktif</div>
+    <div class="stat__nilai mono" style="font-size: 1.25rem;">{{ model_aktif.versi }}</div>
+    <div class="stat__catatan">Dilatih {{ model_aktif.created_at|tanggal }}</div>
+  </div>
+  <div class="stat {{ 'stat--terbit' if (model_aktif.akurasi or 0) >= 0.85 else 'stat--tunggu' }}">
+    <div class="stat__label">Akurasi uji</div>
+    <div class="stat__nilai">{{ '%.1f'|format((model_aktif.akurasi or 0) * 100) }}%</div>
+    <div class="stat__catatan">Cross-validation · target ≥ 85%</div>
+  </div>
+  <div class="stat {{ 'stat--terbit' if (model_aktif.macro_f1 or 0) >= 0.80 else 'stat--tunggu' }}">
+    <div class="stat__label">Macro F1</div>
+    <div class="stat__nilai">{{ '%.3f'|format(model_aktif.macro_f1 or 0) }}</div>
+    <div class="stat__catatan">Target ≥ 0,80</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">Data latih</div>
+    <div class="stat__nilai">{{ model_aktif.jumlah_sampel }}</div>
+    <div class="stat__catatan">{{ model_aktif.jumlah_intent }} intent</div>
+  </div>
+</div>
+{% else %}
+<div class="flash flash--err">
+  <span>Belum ada model aktif. Asisten tidak dapat mengenali pertanyaan sampai model dilatih.</span>
+</div>
+{% endif %}
+
+<div class="form-grid form-grid--2 mt-6" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Latih ulang model</h2>
+        <p class="caption mb-0">
+          TF-IDF + LinearSVC, dilatih dari {{ jumlah_sampel }} sampel aktif di dataset.
+        </p>
+      </div>
+    </div>
+    <div class="card__body">
+      <dl class="kv">
+        <dt>Runtime</dt>
+        <dd>
+          {% if runtime_siap %}
+          <span class="badge badge--terbit">Siap</span>
+          <span class="mono kecil">{{ runtime_versi }}</span>
+          {% else %}
+          <span class="badge badge--tolak">Tidak siap</span>
+          <div class="caption">Model belum dimuat ke memori.</div>
+          {% endif %}
+        </dd>
+        <dt>Sampel aktif</dt>
+        <dd>{{ jumlah_sampel }}</dd>
+        <dt>Metode evaluasi</dt>
+        <dd class="kecil">5-fold cross-validation berstrata, dilaporkan sebagai rata-rata</dd>
+      </dl>
+      <p class="caption">
+        Pelatihan memakan waktu beberapa detik dan menggantikan model aktif.
+        Model lama tetap tersimpan sebagai arsip dan bisa diaktifkan kembali.
+      </p>
+    </div>
+    <form method="post" action="/admin/model/latih"
+          data-konfirmasi="Latih ulang model sekarang? Model baru langsung menggantikan model aktif.">
+      <div class="card__foot">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn btn--primary btn--sm" type="submit">{{ ikon('refresh', 16) }} Latih model</button>
+        <a class="btn btn--ghost btn--sm" href="/admin/dataset">Kelola dataset</a>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Metrik per intent</h2>
+        <p class="caption mb-0">Model aktif, dihitung lewat cross-validation.</p>
+      </div>
+    </div>
+    {% if metrik %}
+    <div class="tabel-wrap">
+      <table class="tabel tabel--rapat">
+        <thead>
+          <tr>
+            <th>Intent</th>
+            <th class="angka">Precision</th>
+            <th class="angka">Recall</th>
+            <th class="angka">F1</th>
+            <th class="angka">N</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in metrik %}
+          <tr>
+            <td class="mono kecil">{{ m.label }}</td>
+            <td class="angka">{{ '%.2f'|format(m.precision) }}</td>
+            <td class="angka">{{ '%.2f'|format(m.recall) }}</td>
+            <td class="angka {{ 'tebal' if m.f1 < 0.7 else '' }}">{{ '%.2f'|format(m.f1) }}</td>
+            <td class="angka muted">{{ m.support }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="kosong">
+      <h3>Belum ada metrik</h3>
+      <p class="kecil mb-0">Metrik tersimpan setelah model dilatih ulang dari panel ini.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card mt-6">
+  <div class="card__head">
+    <div>
+      <h2>Riwayat model</h2>
+      <p class="caption mb-0">Model lama disimpan agar dapat dibandingkan atau dikembalikan.</p>
+    </div>
+  </div>
+  {% if rows %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>Versi</th><th>Status</th><th class="angka">Akurasi</th>
+          <th class="angka">Macro F1</th><th class="angka">Sampel</th>
+          <th>Dilatih</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in rows %}
+        <tr>
+          <td class="mono">{{ m.versi }}</td>
+          <td>
+            <span class="badge {{ 'badge--terbit' if m.aktif else 'badge--netral' }}">
+              {{ 'Aktif' if m.aktif else 'Arsip' }}
+            </span>
+          </td>
+          <td class="angka">{{ '%.1f'|format((m.akurasi or 0) * 100) }}%</td>
+          <td class="angka">{{ '%.3f'|format(m.macro_f1 or 0) }}</td>
+          <td class="angka">{{ m.jumlah_sampel }}</td>
+          <td class="kecil muted nowrap">{{ m.created_at|tanggal }} {{ m.created_at|waktu }}</td>
+          <td class="kanan">
+            {% if not m.aktif %}
+            <form method="post" action="/admin/model/{{ m.id }}/aktifkan" style="display: inline;"
+                  data-konfirmasi="Aktifkan model {{ m.versi }}? Model yang sedang aktif akan diarsipkan.">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <button class="btn btn--ghost btn--sm" type="submit">Aktifkan</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="kosong">
+    <h3>Belum ada model</h3>
+    <p class="kecil mb-0">Jalankan pelatihan pertama dari tombol di atas.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

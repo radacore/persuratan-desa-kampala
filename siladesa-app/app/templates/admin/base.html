@@ -1,0 +1,125 @@
+{% from "partials/ikon.html" import ikon %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ judul }} — Panel {{ nama_aplikasi }}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+  {% block kepala %}{% endblock %}
+</head>
+<body>
+<div class="admin">
+  <aside class="sidebar" aria-label="Navigasi panel">
+    <div class="sidebar__brand">
+      <img src="/static/favicon.svg" alt="" width="32" height="32">
+      <div>
+        <strong>{{ nama_aplikasi }}</strong>
+        <span>Panel petugas desa</span>
+      </div>
+    </div>
+    <nav class="sidebar__nav">
+      {% for item in nav %}
+      <a class="sidebar__link" href="{{ item.href }}"
+         {% if aktif == item.href %}aria-current="page"{% endif %}>
+        {{ ikon(item.ikon) }}<span>{{ item.label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar__kaki">
+      <strong>{{ user.nama_lengkap if user else 'Petugas' }}</strong>
+      {{ peran_label.get(user.role, user.role) if user else '' }}
+      <form method="post" action="/admin/logout" style="margin-top: var(--space-3);">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn btn--sm" type="submit"
+                style="width:100%; justify-content:flex-start; color:#d7eadd; border-color:rgba(255,255,255,.2);">
+          {{ ikon('log-out', 16) }} Keluar
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--sm hanya-mobile" type="button" data-buka-sheet
+              aria-label="Buka menu">{{ ikon('menu', 20) }}</button>
+      <div class="topbar__judul">
+        <h1>{{ judul }}</h1>
+        <span class="caption">{{ nama_desa }} · {{ user.nama_lengkap if user else '' }}</span>
+      </div>
+      <div class="topbar__aksi">
+        <a class="btn btn--ghost btn--sm" href="/" target="_blank" rel="noopener">Lihat situs</a>
+        <span class="pill">{{ peran_label.get(user.role, user.role) if user else '-' }}</span>
+      </div>
+    </header>
+
+    <main class="isi">
+      {% if pesan %}
+      <div class="flash flash--{{ 'err' if jenis_pesan == 'err' else 'ok' }}" role="status">
+        <span>{{ pesan }}</span>
+        <button class="flash__tutup" type="button" onclick="this.parentElement.remove()"
+                aria-label="Tutup">&times;</button>
+      </div>
+      {% endif %}
+      {% block isi %}{% endblock %}
+    </main>
+
+    <footer class="kaki row row--antara">
+      <span>{{ nama_aplikasi }} v{{ versi }} · {{ nama_desa }}</span>
+      <span>{{ sekarang|tanggal if sekarang else '' }}</span>
+    </footer>
+  </div>
+</div>
+
+<div class="sheet" data-sheet data-buka="0">
+  <button class="sheet__tirai" type="button" data-tutup-sheet aria-label="Tutup menu"></button>
+  <div class="sheet__panel" role="dialog" aria-label="Menu panel">
+    <div class="sheet__head">
+      <strong>{{ nama_aplikasi }}</strong>
+      <button class="btn btn--ghost btn--sm" type="button" data-tutup-sheet
+              aria-label="Tutup menu">{{ ikon('x', 18) }}</button>
+    </div>
+    {% for item in nav %}
+    <a class="sidebar__link" href="{{ item.href }}"
+       {% if aktif == item.href %}aria-current="page"{% endif %}>
+      {{ ikon(item.ikon) }}<span>{{ item.label }}</span>
+    </a>
+    {% endfor %}
+    <form method="post" action="/admin/logout" style="padding: var(--space-3) var(--space-5);">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn btn--secondary btn--blok" type="submit">Keluar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var sheet = document.querySelector("[data-sheet]");
+    if (!sheet) return;
+    function atur(buka) {
+      sheet.setAttribute("data-buka", buka ? "1" : "0");
+      document.body.style.overflow = buka ? "hidden" : "";
+    }
+    document.querySelectorAll("[data-buka-sheet]").forEach(function (b) {
+      b.addEventListener("click", function () { atur(true); });
+    });
+    document.querySelectorAll("[data-tutup-sheet]").forEach(function (b) {
+      b.addEventListener("click", function () { atur(false); });
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") atur(false);
+    });
+
+    // Formulir destruktif wajib dikonfirmasi.
+    document.querySelectorAll("form[data-konfirmasi]").forEach(function (f) {
+      f.addEventListener("submit", function (e) {
+        if (!window.confirm(f.getAttribute("data-konfirmasi"))) e.preventDefault();
+      });
+    });
+  })();
+</script>
+{% block skrip %}{% endblock %}
+</body>
+</html>

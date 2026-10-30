@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terjadi kesalahan — {{ nama_aplikasi }}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <main class="galat-halaman">
+    <div class="galat-kotak">
+      <div class="kode">GALAT {{ kode }}</div>
+      <h1>Permintaan tidak dapat diproses</h1>
+      <p class="muted">
+        {{ pesan_galat or "Terjadi kesalahan saat memproses permintaan Anda." }}
+      </p>
+      <div class="row" style="justify-content: center; margin-top: var(--space-5);">
+        <a class="btn btn--primary" href="/">Beranda</a>
+        <button class="btn btn--secondary" type="button" onclick="history.back()">Kembali</button>
+      </div>
+      <p class="caption" style="margin-top: var(--space-5);">
+        Bila masalah berulang, catat waktu kejadian dan laporkan ke admin teknis desa.
+      </p>
+    </div>
+  </main>
+</body>
+</html>

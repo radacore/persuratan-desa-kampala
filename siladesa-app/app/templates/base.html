@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block judul %}{{ nama_aplikasi }} — {{ nama_desa }}{% endblock %}</title>
+  <meta name="description" content="Layanan administrasi {{ nama_desa }}: ajukan surat keterangan, lacak status, dan verifikasi keaslian dokumen.">
+  <meta name="theme-color" content="#052e16">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+  {% block kepala %}{% endblock %}
+</head>
+<body class="publik">
+  <a class="sr-only" href="#isi">Lewati ke konten</a>
+
+  <header class="publik__header">
+    <div class="container">
+      <a class="merek" href="/">
+        <img src="/static/favicon.svg" alt="" width="34" height="34">
+        <span>{{ nama_aplikasi }}<small>Pemerintah {{ nama_desa }}</small></span>
+      </a>
+      <nav class="publik__nav" aria-label="Navigasi utama">
+        <a href="/" {% if path == '/' %}aria-current="page"{% endif %}>Beranda</a>
+        <a href="/lacak" {% if path == '/lacak' %}aria-current="page"{% endif %}>Lacak</a>
+        <a href="/unduh" {% if path == '/unduh' %}aria-current="page"{% endif %}>Unduh</a>
+        <a class="btn btn--secondary btn--sm" href="/admin">Masuk petugas</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="isi">
+    {% if pesan %}
+    <div class="container" style="padding-top: var(--space-4);">
+      <div class="flash flash--{{ 'err' if jenis_pesan == 'err' else 'ok' }}" role="status">
+        <span>{{ pesan }}</span>
+        <button class="flash__tutup" type="button" onclick="this.parentElement.remove()" aria-label="Tutup">&times;</button>
+      </div>
+    </div>
+    {% endif %}
+    {% block isi %}{% endblock %}
+  </main>
+
+  <footer class="publik__kaki">
+    <div class="container row row--antara row--atas">
+      <div>
+        <strong>Pemerintah {{ nama_desa }}</strong><br>
+        Kecamatan Arungkeke, Kabupaten Jeneponto, Sulawesi Selatan<br>
+        Jl. Poros Dusun Buntulu, Desa Kampala
+      </div>
+      <div>
+        <strong>Layanan</strong><br>
+        Senin–Jumat, 08.00–15.00 WITA<br>
+        <a href="/lacak">Lacak pengajuan</a> · <a href="/unduh">Unduh dokumen</a>
+      </div>
+    </div>
+    <div class="container" style="margin-top: var(--space-6); font-size: .8125rem; opacity: .8;">
+      {{ nama_aplikasi }} v{{ versi }} — sistem internal desa. Dokumen resmi hanya sah bila
+      terverifikasi melalui QR code pada surat.
+    </div>
+  </footer>
+
+  {% include "partials/chat.html" %}
+  <script src="/static/js/widget.js" defer></script>
+  {% block skrip %}{% endblock %}
+</body>
+</html>

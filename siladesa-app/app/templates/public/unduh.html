@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block judul %}Unduh dokumen — {{ nama_aplikasi }}{% endblock %}
+
+{% block isi %}
+<section class="bagian">
+  <div class="container container--sempit">
+    <div class="bagian__judul">
+      <h2>Mengunduh dokumen</h2>
+      <p>Tautan unduh dikirim bersama pemberitahuan bahwa surat Anda telah terbit.</p>
+    </div>
+
+    <div class="card">
+      <div class="card__body stack">
+        <div>
+          <h3>1. Periksa nomor tiket</h3>
+          <p class="kecil muted mb-0">
+            Buka <a href="/lacak">halaman lacak</a> dan masukkan nomor tiket Anda. Bila surat
+            sudah terbit, tombol <strong>Unduh surat</strong> akan muncul di sana.
+          </p>
+        </div>
+        <div>
+          <h3>2. Gunakan tautan yang sah</h3>
+          <p class="kecil muted mb-0">
+            Tautan unduh memuat token bertanda tangan yang berlaku {{ ttl }} hari. Tautan
+            tidak dapat ditebak dan tidak dapat dipakai ulang setelah kedaluwarsa.
+          </p>
+        </div>
+        <div>
+          <h3>3. Periksa keaslian</h3>
+          <p class="kecil muted mb-0">
+            Setiap surat memiliki QR code. Memindai QR akan membuka halaman verifikasi yang
+            menampilkan nomor surat dan status keabsahannya.
+          </p>
+        </div>
+      </div>
+      <div class="card__foot row">
+        <a class="btn btn--primary" href="/lacak">Buka halaman lacak</a>
+        <a class="btn btn--ghost" href="/">Kembali ke beranda</a>
+      </div>
+    </div>
+
+    <div class="flash flash--err" style="margin-top: var(--space-6);">
+      <div>
+        <strong>Jangan percaya tautan dari sumber tidak dikenal.</strong>
+        <div class="kecil">
+          {{ nama_aplikasi }} tidak pernah meminta biaya melalui pesan singkat. Bila ragu,
+          hubungi kantor desa.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

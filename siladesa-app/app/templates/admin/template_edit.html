@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="row mb-4">
+  <a class="btn btn--ghost btn--sm" href="/admin/template">{{ ikon('arrow-left', 16) }} Daftar template</a>
+  <span class="badge {{ 'badge--terbit' if row.aktif else 'badge--netral' }}">
+    {{ 'Aktif' if row.aktif else 'Arsip' }}
+  </span>
+</div>
+
+<form method="post" action="/admin/template/{{ row.id }}">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+
+  <div class="form-grid" style="grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <h2>Template {{ row.service.kode }} versi {{ row.versi }}</h2>
+          <p class="caption mb-0">
+            Layanan: {{ row.service.nama }} · dibuat {{ row.created_at|tanggal }}
+          </p>
+        </div>
+      </div>
+      <div class="card__body">
+        <label class="field">
+          <span class="label">Nama template <span class="wajib">(wajib)</span></span>
+          <input class="input" type="text" name="nama" value="{{ row.nama }}" required maxlength="150">
+        </label>
+
+        <label class="field" style="margin-bottom: var(--space-2);">
+          <span class="label">Isi template <span class="wajib">(wajib)</span></span>
+          <textarea class="textarea textarea--kode" name="konten" rows="24" required
+                    spellcheck="false">{{ row.konten_html }}</textarea>
+        </label>
+
+        <details class="card card--datar mb-4">
+          <summary style="padding: var(--space-3) var(--space-4); cursor: pointer; font-weight: 600;">
+            Cara menulis template
+          </summary>
+          <div class="card__body kecil" style="padding-top: 0;">
+            <ul style="margin: 0; padding-left: 18px;">
+              <li>Baris biasa ditulis sebagai paragraf.</li>
+              <li><span class="mono">#JUDUL#</span> menjadi judul tengah bergaris bawah, dicetak di atas nomor surat.</li>
+              <li><span class="mono">#PEMEGANG#</span> menampilkan blok “Pemegang Surat” di kolom kiri tanda tangan.</li>
+              <li><span class="mono">| Label | Nilai |</span> menjadi baris tabel identitas.</li>
+              <li><span class="mono">{nama_placeholder}</span> diganti data pemohon atau surat.</li>
+              <li>Baris kosong memisahkan paragraf.</li>
+            </ul>
+            <p class="caption" style="margin: var(--space-3) 0 var(--space-2);">
+              Placeholder yang tersedia:
+            </p>
+            <div class="row" style="gap: var(--space-1);">
+              {% for p in placeholder %}
+              <span class="pill mono">{{ '{' ~ p ~ '}' }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </details>
+
+        <fieldset style="border: 0; padding: 0; margin: 0;">
+          <legend class="label">Cara menyimpan</legend>
+          <label class="check" style="margin-bottom: var(--space-2);">
+            <input type="radio" name="mode" value="perbarui" checked>
+            <span>
+              <strong>Perbarui versi ini</strong>
+              <span class="bantuan" style="margin-top: 0;">
+                Surat yang sudah terbit tidak terpengaruh.
+              </span>
+            </span>
+          </label>
+          <label class="check">
+            <input type="radio" name="mode" value="baru">
+            <span>
+              <strong>Simpan sebagai versi baru dan aktifkan</strong>
+              <span class="bantuan" style="margin-top: 0;">
+                Versi {{ row.versi + 1 }} dibuat; semua versi lain layanan ini menjadi arsip.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+      </div>
+      <div class="card__foot row">
+        <button class="btn btn--primary" type="submit">Simpan template</button>
+        <a class="btn btn--ghost" href="/admin/template">Batal</a>
+      </div>
+    </section>
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+flowchart TD
+    classDef term fill:#E2F0D9,stroke:#548235,color:#000000,stroke-width:1.5px
+    classDef decision fill:#FFF6DC,stroke:#BF8F00,color:#000000,stroke-width:1.5px
+    classDef process fill:#E7F0FB,stroke:#2F5597,color:#000000,stroke-width:1.5px
+
+    START(["MULAI"])
+    ACCESS["Masyarakat Mengakses<br/>Antarmuka Chatbot (WhatsApp)"]
+    INPUT["Masyarakat Menginput Pertanyaan /<br/>Pengajuan Surat (Bahasa Alami /<br/>Natural Language)"]
+    NLP["Pemrosesan NLP Otomatis &<br/>Identifikasi Intent"]
+    Q1{"Apakah Pemohon Mengajukan<br/>Penerbitan Surat?"}
+    REQ["Sistem Meminta Input Data<br/>& Berkas Persyaratan"]
+    Q2{"Apakah Data & Berkas<br/>Lengkap & Valid?"}
+    FIX["Chatbot Minta Pengguna<br/>Melengkapi Data Berkas"]
+    GEN["Sistem Meng-generate Dokumen<br/>Surat Format PDF Otomatis"]
+    SIGN["Sistem Membubuhi Scan Tanda Tangan<br/>Kepala Desa & QR Code Validasi"]
+    SEND["Chatbot Mengirimkan File Surat<br/>PDF ke Obrolan Pengguna"]
+    DL["Pengguna Mengunduh Surat<br/>Resmi Format PDF"]
+    INFO["Chatbot Menampilkan Informasi<br/>Syarat Dokumen Secara Otomatis"]
+    END1(["SELESAI"])
+    END2(["SELESAI"])
+
+    START --> ACCESS --> INPUT --> NLP --> Q1
+    Q1 -- "YA (Pengajuan Surat)" --> REQ --> Q2
+    Q2 -- "TIDAK" --> FIX
+    FIX --> Q2
+    Q2 -- "YA" --> GEN --> SIGN --> SEND --> DL --> END1
+    Q1 -- "TIDAK (Tanya Informasi)" --> INFO --> END2
+
+    class START,END1,END2 term
+    class Q1,Q2 decision
+    class ACCESS,INPUT,NLP,REQ,FIX,GEN,SIGN,SEND,DL,INFO process

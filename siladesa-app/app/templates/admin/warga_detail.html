@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="row row--antara mb-4">
+  <div>
+    <a class="caption" href="/admin/warga">&larr; Kembali ke data warga</a>
+    <h2 style="margin-top: var(--space-2);">{{ warga.nama_lengkap }}</h2>
+    <p class="caption mb-0 mono">{{ warga.nik }}</p>
+  </div>
+  <span class="badge {{ 'badge--terbit' if warga.aktif else 'badge--netral' }}">
+    {{ 'Aktif' if warga.aktif else 'Nonaktif' }}
+  </span>
+</div>
+
+<section class="card mb-4">
+  <div class="card__head">
+    <div>
+      <h2>Identitas warga</h2>
+      <p class="caption mb-0">
+        Perubahan di sini tidak mengubah surat yang sudah terbit.
+      </p>
+    </div>
+  </div>
+  {% if boleh_ubah %}
+  <form method="post" action="/admin/warga/{{ warga.id }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="card__body stack">
+      {% set w = warga %}
+      {% include "admin/partials/form_warga.html" %}
+    </div>
+    <div class="card__foot row">
+      <button class="btn btn--primary btn--sm" type="submit">Simpan perubahan</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="card__body">
+    <dl class="kv">
+      <dt>Nama lengkap</dt><dd>{{ warga.nama_lengkap }}</dd>
+      <dt>NIK</dt><dd class="mono">{{ warga.nik }}</dd>
+      <dt>Jenis kelamin</dt><dd>{{ warga.jenis_kelamin or '-' }}</dd>
+      <dt>Tempat, tanggal lahir</dt>
+      <dd>{{ warga.tempat_lahir or '-' }}{% if warga.tanggal_lahir %}, {{ warga.tanggal_lahir.isoformat() }}{% endif %}</dd>
+      <dt>Agama</dt><dd>{{ warga.agama or '-' }}</dd>
+      <dt>Status perkawinan</dt><dd>{{ warga.status_perkawinan or '-' }}</dd>
+      <dt>Pekerjaan</dt><dd>{{ warga.pekerjaan or '-' }}</dd>
+      <dt>Alamat</dt>
+      <dd>{{ warga.alamat or '-' }}{% if warga.rt or warga.rw %} RT {{ warga.rt or '-' }}/RW {{ warga.rw or '-' }}{% endif %}</dd>
+      <dt>Dusun</dt><dd>{{ warga.dusun or '-' }}</dd>
+      <dt>Nomor HP</dt><dd class="mono">{{ warga.no_hp or '-' }}</dd>
+      <dt>Email</dt><dd>{{ warga.email or '-' }}</dd>
+    </dl>
+  </div>
+  {% endif %}
+</section>
+
+<section class="card mb-4">
+  <div class="card__head">
+    <div>
+      <h2>Riwayat pengajuan</h2>
+      <p class="caption mb-0">{{ riwayat|length }} pengajuan tercatat.</p>
+    </div>
+  </div>
+  {% if riwayat %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr><th>Tiket</th><th>Layanan</th><th>Status</th><th>Diajukan</th></tr>
+      </thead>
+      <tbody>
+        {% for a in riwayat %}
+        <tr>
+          <td class="mono nowrap"><a href="/admin/pengajuan/{{ a.id }}">{{ a.ticket_no }}</a></td>
+          <td class="kecil">{{ a.service.nama if a.service else '-' }}</td>
+          <td><span class="badge {{ a.status|status_kelas }}">{{ a.status|status_label }}</span></td>
+          <td class="kecil muted nowrap">{{ a.created_at|tanggal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card__body">
+    <p class="kecil mb-0">Belum ada pengajuan dari warga ini.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% if boleh_ubah %}
+<section class="card">
+  <div class="card__head">
+    <div>
+      <h2>Status data</h2>
+      <p class="caption mb-0">
+        Warga nonaktif ditolak saat memakai NIK-nya di chat.
+      </p>
+    </div>
+  </div>
+  <div class="card__body row">
+    <form method="post" action="/admin/warga/{{ warga.id }}/aktif">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn btn--secondary btn--sm" type="submit">
+        {{ 'Aktifkan kembali' if not warga.aktif else 'Nonaktifkan warga' }}
+      </button>
+    </form>
+    {% if not riwayat %}
+    <form method="post" action="/admin/warga/{{ warga.id }}/hapus"
+          onsubmit="return confirm('Hapus permanen data warga ini?');">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn btn--ghost btn--sm" type="submit">Hapus permanen</button>
+    </form>
+    {% else %}
+    <span class="caption">Hapus permanen tidak tersedia karena warga punya riwayat pengajuan.</span>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

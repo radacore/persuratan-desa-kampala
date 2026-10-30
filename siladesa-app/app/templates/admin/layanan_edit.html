@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="row mb-4">
+  <a class="btn btn--ghost btn--sm" href="/admin/layanan">{{ ikon('arrow-left', 16) }} Daftar layanan</a>
+</div>
+
+<form method="post" action="/admin/layanan/{{ service.kode }}">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+
+  <div class="form-grid form-grid--2" style="align-items: start;">
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <h2>Identitas layanan</h2>
+          <p class="caption mb-0">Kode <span class="mono">{{ service.kode }}</span> tidak dapat diubah.</p>
+        </div>
+      </div>
+      <div class="card__body">
+        <label class="field">
+          <span class="label">Nama layanan <span class="wajib">(wajib)</span></span>
+          <input class="input" type="text" name="nama" value="{{ service.nama }}" required maxlength="120">
+        </label>
+        <label class="field">
+          <span class="label">Deskripsi singkat</span>
+          <textarea class="textarea" name="deskripsi" rows="3" maxlength="500">{{ service.deskripsi or '' }}</textarea>
+          <span class="bantuan">Tampil di kartu layanan pada beranda.</span>
+        </label>
+        <label class="field">
+          <span class="label">Syarat layanan</span>
+          <textarea class="textarea" name="syarat" rows="6">{{ (service.syarat or [])|join('\n') }}</textarea>
+          <span class="bantuan">Satu syarat per baris. Dikirim asisten saat warga bertanya syarat.</span>
+        </label>
+        <div class="form-grid form-grid--2">
+          <label class="field">
+            <span class="label">Estimasi hari kerja</span>
+            <input class="input" type="number" name="estimasi_hari" min="1" max="30"
+                   value="{{ service.estimasi_hari }}">
+          </label>
+          <label class="field">
+            <span class="label">Urutan tampil</span>
+            <input class="input" type="number" name="urutan" min="0" max="99" value="{{ service.urutan }}">
+          </label>
+        </div>
+        <label class="check">
+          <input type="checkbox" name="aktif" value="1" {% if service.aktif %}checked{% endif %}>
+          <span>Aktif — layanan dapat diajukan warga melalui chat.</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <h2>Field formulir</h2>
+          <p class="caption mb-0">Asisten menanyakan field berurutan sesuai kolom urutan.</p>
+        </div>
+      </div>
+      <div class="card__body stack">
+        {% for f in fields %}
+        <div class="card card--datar">
+          <div class="card__body">
+            <div class="row row--antara mb-2">
+              <span class="mono kecil">{{ f.nama_field }}</span>
+              <span class="pill">{{ f.tipe }}</span>
+            </div>
+            <label class="field">
+              <span class="label">Label pertanyaan</span>
+              <input class="input" type="text" name="label_{{ f.id }}" value="{{ f.label }}" maxlength="120">
+            </label>
+            <div class="form-grid form-grid--3">
+              <label class="field">
+                <span class="label">Urutan</span>
+                <input class="input" type="number" name="urutan_{{ f.id }}" min="0" max="99"
+                       value="{{ f.urutan }}">
+              </label>
+              <label class="field" style="grid-column: span 2;">
+                <span class="label">Placeholder</span>
+                <input class="input" type="text" name="placeholder_{{ f.id }}"
+                       value="{{ f.placeholder or '' }}" maxlength="120">
+              </label>
+            </div>
+            <label class="field">
+              <span class="label">Teks bantuan</span>
+              <input class="input" type="text" name="bantuan_{{ f.id }}"
+                     value="{{ f.bantuan or '' }}" maxlength="200">
+            </label>
+            {% if f.tipe == 'select' %}
+            <label class="field" style="margin-bottom: 0;">
+              <span class="label">Pilihan</span>
+              <textarea class="textarea" name="pilihan_{{ f.id }}" rows="4">{{ (f.pilihan or [])|join('\n') }}</textarea>
+              <span class="bantuan">Satu pilihan per baris.</span>
+            </label>
+            {% endif %}
+            <label class="check" style="margin-top: var(--space-3);">
+              <input type="checkbox" name="wajib_{{ f.id }}" value="1" {% if f.wajib %}checked{% endif %}>
+              <span>Wajib diisi</span>
+            </label>
+          </div>
+        </div>
+        {% else %}
+        <p class="muted kecil">Layanan ini belum punya field formulir.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <div class="row mt-6">
+    <button class="btn btn--primary" type="submit">Simpan perubahan</button>
+    <a class="btn btn--ghost" href="/admin/layanan">Batal</a>
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{#- Navigasi halaman. `info` berasal dari helper `_halaman()` di routers/admin.py. -#}
+{% macro paginasi(info) %}
+{% if info.jumlah_halaman > 1 %}
+{% set awal = [1, info.page - 2]|max %}
+{% set akhir = [info.jumlah_halaman, info.page + 2]|min %}
+<nav class="row row--antara mt-4" aria-label="Navigasi halaman">
+  <span class="caption">
+    Menampilkan {{ info.mulai }}–{{ info.selesai }} dari {{ info.total }} data
+  </span>
+  <span class="row" style="gap: var(--space-1);">
+    {% if info.page > 1 %}
+    <a class="btn btn--secondary btn--sm" href="{{ url_dengan(request, page=info.page - 1) }}"
+       rel="prev">Sebelumnya</a>
+    {% endif %}
+    {% for n in range(awal, akhir + 1) %}
+    <a class="btn btn--sm {{ 'btn--primary' if n == info.page else 'btn--ghost' }}"
+       href="{{ url_dengan(request, page=n) }}"
+       {% if n == info.page %}aria-current="page"{% endif %}>{{ n }}</a>
+    {% endfor %}
+    {% if info.page < info.jumlah_halaman %}
+    <a class="btn btn--secondary btn--sm" href="{{ url_dengan(request, page=info.page + 1) }}"
+       rel="next">Berikutnya</a>
+    {% endif %}
+  </span>
+</nav>
+{% elif info.total %}
+<p class="caption mt-4">{{ info.total }} data.</p>
+{% endif %}
+{% endmacro %}

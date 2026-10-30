@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="flash flash--ok">
+  <span>Perubahan di sini memengaruhi percakapan warga dan formulir yang ditanyakan asisten.</span>
+</div>
+
+<section class="card">
+  <div class="card__head">
+    <div>
+      <h2>Daftar layanan</h2>
+      <p class="caption mb-0">Urutan tampil di beranda mengikuti kolom urutan.</p>
+    </div>
+  </div>
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>Kode</th><th>Nama</th><th class="angka">Field</th>
+          <th class="angka">Estimasi</th><th>Status</th><th class="angka">Urutan</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in rows %}
+        <tr>
+          <td class="mono">{{ s.kode }}</td>
+          <td>
+            <a href="/admin/layanan/{{ s.kode }}">{{ s.nama }}</a>
+            <div class="caption">{{ s.deskripsi or '' }}</div>
+          </td>
+          <td class="angka">{{ s.fields|length }}</td>
+          <td class="angka">{{ s.estimasi_hari }} hari</td>
+          <td>
+            <span class="badge {{ 'badge--terbit' if s.aktif else 'badge--netral' }}">
+              {{ 'Aktif' if s.aktif else 'Nonaktif' }}
+            </span>
+          </td>
+          <td class="angka">{{ s.urutan }}</td>
+          <td class="kanan">
+            <a class="btn btn--secondary btn--sm" href="/admin/layanan/{{ s.kode }}">Ubah</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<p class="caption mt-4">
+  Menambah layanan baru belum tersedia di panel. Layanan MVP ditetapkan saat instalasi
+  (DOM, SKTM, USH, PGG) agar kode layanan tetap konsisten dengan nomor surat.
+</p>
+
+{% endblock %}

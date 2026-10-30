@@ -1,0 +1,274 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="row row--antara mb-4">
+  <a class="btn btn--ghost btn--sm" href="/admin/pengajuan">{{ ikon('arrow-left', 16) }} Semua pengajuan</a>
+  <div class="row">
+    <a class="btn btn--secondary btn--sm" href="/admin/pengajuan/{{ app.id }}/pratinjau"
+       target="_blank" rel="noopener">{{ ikon('eye', 16) }} Pratinjau surat</a>
+    {% if unduh %}
+    <a class="btn btn--primary btn--sm" href="/d/{{ unduh }}">{{ ikon('download', 16) }} Unduh PDF</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="form-grid form-grid--2" style="align-items: start;">
+
+  <div class="stack">
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <span class="caption">Pengajuan</span>
+          <h2 class="mono" style="margin: 0;">{{ app.ticket_no }}</h2>
+        </div>
+        <span class="badge {{ app.status|status_kelas }}">{{ app.status|status_label }}</span>
+      </div>
+      <div class="card__body">
+        <dl class="kv">
+          <dt>Layanan</dt>
+          <dd>{{ app.service.nama if app.service else '-' }}</dd>
+          <dt>Kanal</dt>
+          <dd>{{ app.channel }}</dd>
+          <dt>Diajukan</dt>
+          <dd>{{ app.created_at|tanggal }} {{ app.created_at|waktu }} WITA</dd>
+          <dt>Dikirim warga</dt>
+          <dd>{{ app.submitted_at|tanggal }} {{ app.submitted_at|waktu }} WITA</dd>
+          <dt>Diverifikasi</dt>
+          <dd>
+            {% if app.verified_at %}{{ app.verified_at|tanggal }} {{ app.verified_at|waktu }} WITA
+            {% else %}<span class="muted">Belum</span>{% endif %}
+          </dd>
+          <dt>Surat terbit</dt>
+          <dd>
+            {% if app.issued_at %}{{ app.issued_at|tanggal }} {{ app.issued_at|waktu }} WITA
+            {% else %}<span class="muted">Belum</span>{% endif %}
+          </dd>
+          {% if app.catatan_operator %}
+          <dt>Catatan operator</dt>
+          <dd>{{ app.catatan_operator }}</dd>
+          {% endif %}
+          {% if app.alasan_penolakan %}
+          <dt>Alasan penolakan</dt>
+          <dd style="color: var(--color-danger);">{{ app.alasan_penolakan }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <div>
+          <h2>Data pemohon</h2>
+          <p class="caption mb-0">Data yang diisi warga saat pengajuan.</p>
+        </div>
+      </div>
+      <div class="card__body">
+        {% if app.citizen %}
+        <dl class="kv" style="margin-bottom: var(--space-4);">
+          <dt>Nama lengkap</dt>
+          <dd>{{ app.citizen.nama_lengkap }}</dd>
+          <dt>NIK</dt>
+          <dd class="mono">{{ app.citizen.nik }}</dd>
+          {% if app.citizen.no_hp %}
+          <dt>Nomor HP</dt>
+          <dd class="mono">{{ app.citizen.no_hp }}</dd>
+          {% endif %}
+        </dl>
+        <a class="btn btn--secondary btn--sm" href="/admin/warga/{{ app.citizen.id }}">
+          Lihat data warga
+        </a>
+        {% endif %}
+
+        {% if baris %}
+        <dl class="kv">
+          {% for b in baris %}
+          <dt>{{ b.label }}</dt>
+          <dd>
+            {% if b.tipe == 'uang' %}
+              Rp {{ b.nilai|rupiah }}
+            {% elif b.tipe == 'tanggal' %}
+              {{ b.nilai|tanggal_panjang }}
+            {% else %}
+              <span style="white-space: pre-wrap;">{{ b.nilai }}</span>
+            {% endif %}
+          </dd>
+          {% endfor %}
+        </dl>
+        {% else %}
+        <p class="muted kecil mb-0">Belum ada data formulir.</p>
+        {% endif %}
+
+        {% if app.attachments %}
+        <h3 class="mt-6">Lampiran</h3>
+        <ul class="kecil" style="padding-left: 18px;">
+          {% for f in app.attachments %}
+          <li>
+            <a href="/admin/pengajuan/{{ app.id }}/lampiran/{{ f.id }}">{{ f.nama_file }}</a>
+            <span class="muted">({{ (f.ukuran / 1024)|round|int }} KB, {{ f.mime }})</span>
+            {% if boleh_ubah_lampiran %}
+            <form method="post" action="/admin/pengajuan/{{ app.id }}/lampiran/{{ f.id }}/hapus"
+                  style="display: inline; margin-left: var(--space-2);">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <button class="btn btn--ghost btn--sm" type="submit">Hapus</button>
+            </form>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if boleh_ubah_lampiran %}
+        <h3 class="mt-6">Unggah lampiran</h3>
+        <form method="post" action="/admin/pengajuan/{{ app.id }}/lampiran"
+              enctype="multipart/form-data" class="row" style="align-items: flex-end; gap: var(--space-3);">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label class="field" style="margin-bottom: 0;">
+            <span class="label">Berkas (PDF, PNG, JPG — maks 5 MB)</span>
+            <input class="input" type="file" name="berkas" accept=".pdf,.png,.jpg,.jpeg" required>
+          </label>
+          <button class="btn btn--secondary btn--sm" type="submit">Unggah</button>
+        </form>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2>Riwayat proses</h2></div>
+      <div class="card__body">
+        {% if app.events %}
+        <ol class="timeline">
+          {% for e in app.events|reverse %}
+          <li data-selesai="1">
+            <strong>{{ e.ke_status|status_label }}</strong>
+            <span>{{ e.created_at|tanggal }} {{ e.created_at|waktu }} · {{ e.aktor_label }}</span>
+            {% if e.catatan %}<div class="kecil muted">{{ e.catatan }}</div>{% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <p class="muted kecil mb-0">Belum ada riwayat.</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+
+  <div class="stack">
+    {% if tujuan %}
+    <section class="card">
+      <div class="card__head"><h2>Ubah status</h2></div>
+      <form method="post" action="/admin/pengajuan/{{ app.id }}/status">
+        <div class="card__body">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label class="field">
+            <span class="label">Status tujuan <span class="wajib">(wajib)</span></span>
+            <select class="select" name="ke" required>
+              {% for s in tujuan %}
+              <option value="{{ s }}">{{ s|status_label }}</option>
+              {% endfor %}
+            </select>
+            <span class="bantuan">Pilihan mengikuti peran Anda dan aturan transisi status.</span>
+          </label>
+          <label class="field" style="margin-bottom: 0;">
+            <span class="label">Catatan</span>
+            <textarea class="textarea" name="catatan" rows="3"
+                      placeholder="Wajib untuk penolakan: jelaskan alasan yang bisa dipahami warga."></textarea>
+          </label>
+        </div>
+        <div class="card__foot">
+          <button class="btn btn--primary btn--sm" type="submit">Simpan perubahan status</button>
+        </div>
+      </form>
+    </section>
+    {% endif %}
+
+    {% if boleh_terbitkan %}
+    <section class="card">
+      <div class="card__head"><h2>Terbitkan surat</h2></div>
+      <div class="card__body">
+        {% if app.status == 'DIPROSES' %}
+          {% if template %}
+          <p class="kecil muted">
+            Template aktif: <strong>{{ template.nama }}</strong> versi {{ template.versi }}.
+            Nomor surat berikutnya: <span class="mono">{{ nomor_berikut }}</span>.
+          </p>
+          <form method="post" action="/admin/pengajuan/{{ app.id }}/terbitkan"
+                data-konfirmasi="Terbitkan surat sekarang? Nomor surat akan dipakai permanen dan tidak bisa diubah.">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn btn--primary btn--blok" type="submit">
+              {{ ikon('check', 16) }} Terbitkan &amp; buat PDF
+            </button>
+          </form>
+          {% else %}
+          <div class="flash flash--err" style="margin-bottom: 0;">
+            <span>Layanan ini belum punya template aktif.
+              <a href="/admin/template">Kelola template</a>.</span>
+          </div>
+          {% endif %}
+        {% else %}
+        <p class="kecil muted mb-0">
+          Surat hanya dapat diterbitkan saat status <strong>Diproses</strong>.
+          Ubah status terlebih dahulu bila pengajuan sudah diverifikasi.
+        </p>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if dokumen %}
+    <section class="card">
+      <div class="card__head">
+        <h2>Dokumen</h2>
+        <span class="badge {{ 'badge--terbit' if dokumen.status == 'TERBIT' else 'badge--tolak' }}">
+          {{ dokumen.status }}
+        </span>
+      </div>
+      <div class="card__body">
+        <dl class="kv">
+          <dt>Nomor surat</dt>
+          <dd class="mono">{{ dokumen.nomor_surat }}</dd>
+          <dt>Diterbitkan</dt>
+          <dd>{{ dokumen.issued_at|tanggal }} {{ dokumen.issued_at|waktu }} WITA</dd>
+          <dt>SHA-256</dt>
+          <dd class="mono kecil" style="word-break: break-all;">{{ dokumen.sha256 }}</dd>
+          <dt>Pemindaian QR</dt>
+          <dd>{{ dokumen.scans|length }} kali</dd>
+          {% if dokumen.revoked_at %}
+          <dt>Dicabut</dt>
+          <dd>{{ dokumen.revoked_at|tanggal }} — {{ dokumen.revoked_reason }}</dd>
+          {% endif %}
+        </dl>
+        <div class="row mt-4">
+          {% if unduh %}
+          <a class="btn btn--secondary btn--sm" href="/d/{{ unduh }}">{{ ikon('download', 16) }} Unduh</a>
+          {% endif %}
+          <a class="btn btn--ghost btn--sm" href="/v/{{ dokumen.qr_token }}" target="_blank"
+             rel="noopener">{{ ikon('qr', 16) }} Halaman verifikasi</a>
+        </div>
+      </div>
+    </section>
+
+    {% if boleh_cabut and dokumen.status == 'TERBIT' %}
+    <section class="card">
+      <div class="card__head"><h2>Cabut surat</h2></div>
+      <form method="post" action="/admin/pengajuan/{{ app.id }}/cabut"
+            data-konfirmasi="Cabut surat ini? Halaman verifikasi akan menyatakan dokumen tidak berlaku.">
+        <div class="card__body">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label class="field" style="margin-bottom: 0;">
+            <span class="label">Alasan pencabutan <span class="wajib">(wajib)</span></span>
+            <textarea class="textarea" name="alasan" rows="3" required
+                      placeholder="Contoh: data pemohon tidak sesuai saat verifikasi ulang."></textarea>
+          </label>
+        </div>
+        <div class="card__foot">
+          <button class="btn btn--outline-danger btn--sm" type="submit">Cabut surat</button>
+        </div>
+      </form>
+    </section>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

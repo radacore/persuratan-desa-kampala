@@ -1,0 +1,151 @@
+{% extends "admin/base.html" %}
+{% from "partials/ikon.html" import ikon %}
+{% block isi %}
+
+<div class="stat-grid">
+  <div class="stat stat--tunggu">
+    <div class="stat__label">Menunggu verifikasi</div>
+    <div class="stat__nilai">{{ menunggu }}</div>
+    <div class="stat__catatan">Perlu diperiksa operator</div>
+  </div>
+  <div class="stat stat--aksen">
+    <div class="stat__label">Sedang diproses</div>
+    <div class="stat__nilai">{{ diproses }}</div>
+    <div class="stat__catatan">Sudah diverifikasi, siap terbit</div>
+  </div>
+  <div class="stat stat--terbit">
+    <div class="stat__label">Surat terbit</div>
+    <div class="stat__nilai">{{ terbit }}</div>
+    <div class="stat__catatan">Total sepanjang waktu</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">Masuk 30 hari</div>
+    <div class="stat__nilai">{{ masuk_30 }}</div>
+    <div class="stat__catatan">Dari {{ total }} pengajuan</div>
+  </div>
+</div>
+
+<div class="form-grid form-grid--2 mt-6" style="align-items: start;">
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Antrean verifikasi</h2>
+        <p class="caption mb-0">Pengajuan terlama di atas.</p>
+      </div>
+      <a class="btn btn--secondary btn--sm" href="/admin/pengajuan?status=MENUNGGU_VERIFIKASI">Lihat semua</a>
+    </div>
+    {% if antrean %}
+    <div class="tabel-wrap">
+      <table class="tabel tabel--rapat">
+        <thead>
+          <tr><th>Tiket</th><th>Pemohon</th><th>Layanan</th><th>Masuk</th></tr>
+        </thead>
+        <tbody>
+          {% for a in antrean %}
+          <tr>
+            <td class="mono nowrap"><a href="/admin/pengajuan/{{ a.id }}">{{ a.ticket_no }}</a></td>
+            <td>{{ a.citizen.nama_lengkap if a.citizen else '-' }}</td>
+            <td class="kecil">{{ a.service.nama if a.service else '-' }}</td>
+            <td class="kecil muted nowrap">{{ a.submitted_at|sejak }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="kosong">
+      <h3>Tidak ada antrean</h3>
+      <p class="kecil mb-0">Semua pengajuan sudah ditangani.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card__head">
+      <div>
+        <h2>Kesehatan layanan</h2>
+        <p class="caption mb-0">Ringkasan 30 hari terakhir.</p>
+      </div>
+    </div>
+    <div class="card__body">
+      <dl class="kv">
+        <dt>Model NLP aktif</dt>
+        <dd>
+          {% if model %}
+            <span class="mono">{{ model.versi }}</span>
+            <div class="caption">
+              Akurasi {{ '%.1f'|format((model.akurasi or 0) * 100) }}% ·
+              macro F1 {{ '%.2f'|format(model.macro_f1 or 0) }} ·
+              {{ model.jumlah_sampel or 0 }} sampel
+            </div>
+          {% else %}
+            <span class="badge badge--tolak">Belum aktif</span>
+            <div class="caption"><a href="/admin/model">Latih model sekarang</a></div>
+          {% endif %}
+        </dd>
+
+        <dt>Pertanyaan gagal</dt>
+        <dd>
+          {{ gagal }} pesan
+          <div class="caption">Tidak dikenali atau keyakinan rendah.</div>
+        </dd>
+
+        <dt>Kepuasan warga</dt>
+        <dd>
+          {% if rating %}
+            {{ '%.1f'|format(rating) }} / 5
+          {% else %}
+            <span class="muted">Belum ada penilaian</span>
+          {% endif %}
+        </dd>
+
+        <dt>Verifikasi QR</dt>
+        <dd>{{ scans }} pemindaian sah</dd>
+      </dl>
+    </div>
+    <div class="card__foot row">
+      <a class="btn btn--secondary btn--sm" href="/admin/pertanyaan">Tinjau pertanyaan gagal</a>
+      <a class="btn btn--ghost btn--sm" href="/admin/laporan">Buka laporan</a>
+    </div>
+  </section>
+</div>
+
+<section class="card mt-6">
+  <div class="card__head">
+    <div>
+      <h2>Pengajuan terbaru</h2>
+      <p class="caption mb-0">Delapan pengajuan terakhir yang masuk.</p>
+    </div>
+    <a class="btn btn--secondary btn--sm" href="/admin/pengajuan">Semua pengajuan</a>
+  </div>
+  {% if terbaru %}
+  <div class="tabel-wrap">
+    <table class="tabel">
+      <thead>
+        <tr>
+          <th>Tiket</th><th>Pemohon</th><th>Layanan</th><th>Status</th><th>Diajukan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in terbaru %}
+        <tr>
+          <td class="mono nowrap"><a href="/admin/pengajuan/{{ a.id }}">{{ a.ticket_no }}</a></td>
+          <td>{{ a.citizen.nama_lengkap if a.citizen else '-' }}</td>
+          <td class="kecil">{{ a.service.nama if a.service else '-' }}</td>
+          <td><span class="badge {{ a.status|status_kelas }}">{{ a.status|status_label }}</span></td>
+          <td class="kecil muted nowrap">{{ a.created_at|sejak }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="kosong">
+    <h3>Belum ada pengajuan</h3>
+    <p class="kecil mb-0">Pengajuan dari warga akan muncul di sini.</p>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

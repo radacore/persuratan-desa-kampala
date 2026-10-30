@@ -1,0 +1,64 @@
+# SILADESA — satu VPS, tiga kontainer.
+#   app    : FastAPI + Uvicorn (image dibangun dari Dockerfile)
+#   db     : PostgreSQL 16
+#   caddy  : reverse proxy + TLS otomatis
+#
+# Salin .env.example menjadi .env, isi SECRET_KEY, POSTGRES_PASSWORD, dan
+# DOMAIN, lalu: docker compose up -d --build
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://siladesa:${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env}@db:5432/siladesa
+    volumes:
+      # Dokumen PDF, lampiran, dan artefak model harus bertahan saat image
+      # dibangun ulang.
+      - ./data/storage:/app/data/storage
+      - ./data/models:/app/data/models
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: siladesa
+      POSTGRES_USER: siladesa
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env}
+      TZ: Asia/Makassar
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siladesa -d siladesa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./app/static:/srv/static:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
