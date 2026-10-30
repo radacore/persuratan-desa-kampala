@@ -28,6 +28,7 @@ from app.models import (
     Setting,
 )
 from app.services import applications as appsvc
+from app.services import kontak as kontaksvc
 from app.services.nlp import cocokkan_faq, nlp
 
 TIKET_RE = re.compile(r"APP-\d{4}-\d{6}", re.IGNORECASE)
@@ -66,6 +67,11 @@ PILIHAN_KONFIRMASI_WARGA = [
     {"label": "Ya, pakai data ini", "value": "1"},
     {"label": "Perbaiki data", "value": "2"},
     {"label": "Batal", "value": "3"},
+]
+
+PILIHAN_NIK_TERSIMPAN = [
+    {"label": "Ya, pakai NIK ini", "value": "1"},
+    {"label": "Masukkan NIK lain", "value": "2"},
 ]
 
 _URUTAN_MENU = ["DOM", "SKTM", "USH", "PGG"]
@@ -350,6 +356,80 @@ def _kartu_warga(citizen: Citizen, fields: list[ServiceField]) -> str:
     )
 
 
+def _tawaran_nik(db: Session, sesi: ConversationSession) -> str | None:
+    """Teks tawaran NIK tersimpan, atau None bila tak ada/tak boleh ditawar.
+
+    NIK ditampilkan tersamar; tidak membuat draft baru.
+    """
+    nik = kontaksvc.nik_tersimpan(db, sesi.channel, sesi.kontak)
+    if nik is None:
+        return None
+    return (
+        "Ditemukan NIK yang pernah dipakai dari perangkat ini:\n"
+        f"NIK: {kontaksvc.samar_nik(nik)}\n\n"
+        "Gunakan NIK ini untuk pengajuan?\n"
+        "1. Ya, pakai NIK ini\n"
+        "2. Masukkan NIK lain"
+    )
+
+
+def _jawab_konfirmasi_nik(
+    db: Session, sesi: ConversationSession, pesan: str
+) -> tuple[list[str], list[dict[str, str]]]:
+    """Tangani jawaban atas tawaran NIK tersimpan (pakai / NIK lain)."""
+    teks = pesan.strip().lower()
+    if teks in {"1"} | YA:
+        nik = kontaksvc.nik_tersimpan(db, sesi.channel, sesi.kontak)
+        if nik is not None:
+            # Masukkan sebagai jawaban field NIK, lalu lanjutkan alur normal.
+            service = db.get(Service, sesi.service_id) if sesi.service_id else None
+            fields = _fields_service(service) if service else []
+            if fields and sesi.field_index < len(fields) \
+                    and fields[sesi.field_index].tipe == "nik":
+                sesi.slot_data = {**(sesi.slot_data or {}),
+                                   fields[sesi.field_index].nama_field: nik}
+            sesi.state = C.ChatState.SLOT_FILLING.value
+            return _lanjut_setelah_nik(db, sesi, nik)
+
+    # Jawaban 2 / teks lain: kembali ke prompt NIK biasa.
+    sesi.state = C.ChatState.SLOT_FILLING.value
+    service = db.get(Service, sesi.service_id) if sesi.service_id else None
+    if service is None:
+        _reset(sesi)
+        return ["Sesi pengajuan tidak ditemukan. Silakan mulai lagi dari menu."], []
+    fields = _fields_service(service)
+    if sesi.field_index < len(fields) and fields[sesi.field_index].tipe == "nik":
+        pertanyaan, pilihan = _prompt_field(fields[sesi.field_index])
+        return [f"Silakan masukkan NIK Anda.\n{pertanyaan}"], pilihan
+    return _tanya_field_berikut(db, sesi, fields)
+
+
+def _lanjut_setelah_nik(
+    db: Session, sesi: ConversationSession, nik: str
+) -> tuple[list[str], list[dict[str, str]]]:
+    """Lanjutkan alur seolah warga baru saja mengetik NIK tersebut."""
+    service = db.get(Service, sesi.service_id) if sesi.service_id else None
+    if service is None:
+        _reset(sesi)
+        return ["Sesi pengajuan tidak ditemukan. Silakan mulai lagi dari menu."], []
+    fields = _fields_service(service)
+    warga = appsvc.cari_citizen(db, nik)
+    if warga is not None and not warga.aktif:
+        pertanyaan, pilihan = _prompt_field(fields[sesi.field_index])
+        return [
+            "⚠️ NIK ini tercatat nonaktif. Hubungi kantor desa untuk "
+            f"mengaktifkan kembali.\n\n{pertanyaan}"
+        ], pilihan
+    if warga is not None:
+        sesi.slot_data = {**(sesi.slot_data or {}), **_nilai_identitas(warga, fields)}
+        sesi.state = C.ChatState.KONFIRMASI_WARGA.value
+        return [_kartu_warga(warga, fields)], PILIHAN_KONFIRMASI_WARGA
+    # NIK belum terdaftar: teruskan pengisian normal.
+    sesi.slot_data = dict(sesi.slot_data or {})
+    sesi.field_index += 1
+    return _tanya_field_berikut(db, sesi, fields)
+
+
 def _tanya_field_berikut(
     db: Session, sesi: ConversationSession, fields: list[ServiceField]
 ) -> tuple[list[str], list[dict[str, str]]]:
@@ -439,6 +519,14 @@ def _mulai_pengisian(
         return _konfirmasi(db, sesi, draft)
 
     field = fields[sesi.field_index]
+
+    # Tawarkan NIK yang pernah dipakai kontak ini: pengajuan ulang cukup
+    # mengonfirmasi, tanpa mengetik 16 digit lagi.
+    tawaran = _tawaran_nik(db, sesi)
+    if field.tipe == "nik" and tawaran is not None:
+        sesi.state = C.ChatState.KONFIRMASI_NIK.value
+        return [tawaran], PILIHAN_NIK_TERSIMPAN
+
     pertanyaan, pilihan = _prompt_field(field)
     total = len(fields)
     return [
@@ -536,6 +624,17 @@ def _simpan_jawaban_field(
         return _konfirmasi(db, sesi, draft)
 
     berikut = fields[sesi.field_index]
+
+    # Tawaran NIK tersimpan muncul tepat saat field NIK tercapai,
+    # tanpa menunggu satu ketikan sia-sia dari warga.
+    if berikut.tipe == "nik" and not str(
+        (sesi.slot_data or {}).get(berikut.nama_field, "")
+    ).strip():
+        tawaran = _tawaran_nik(db, sesi)
+        if tawaran is not None:
+            sesi.state = C.ChatState.KONFIRMASI_NIK.value
+            return [tawaran], PILIHAN_NIK_TERSIMPAN
+
     pertanyaan, pilihan = _prompt_field(berikut)
     return [f"Data {sesi.field_index + 1} dari {len(fields)}.\n{pertanyaan}"], pilihan
 
@@ -718,6 +817,10 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
 
     elif sesi.state == C.ChatState.KONFIRMASI_WARGA.value:
         balasan, pilihan = _jawab_konfirmasi_warga(db, sesi, pesan)
+        intent = sesi.intent_kode
+
+    elif sesi.state == C.ChatState.KONFIRMASI_NIK.value:
+        balasan, pilihan = _jawab_konfirmasi_nik(db, sesi, pesan)
         intent = sesi.intent_kode
 
     elif sesi.state == C.ChatState.KONFIRMASI.value:

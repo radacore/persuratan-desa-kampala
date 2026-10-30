@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app import constants as C
 from app.models import AdminUser, Application, ApplicationEvent, Citizen, Service
+from app.services.kontak import ingat_nik
 from app.services.numbering import next_ticket_no
 
 #: Field yang disimpan pada tabel CITIZEN, sisanya masuk `application.form_data`.
@@ -33,6 +34,14 @@ CITIZEN_FIELDS = {
 
 class KesalahanPengajuan(Exception):
     """Pelanggaran aturan bisnis pengajuan."""
+
+
+def _kontak_sesi(db: Session, session_id: str) -> str | None:
+    """Ambil kontak percakapan asal pengajuan, bila sesi masih ada."""
+    from app.models import ConversationSession
+
+    sesi = db.get(ConversationSession, session_id)
+    return sesi.kontak if sesi else None
 
 
 def _now() -> datetime:
@@ -199,6 +208,8 @@ def kirim_pengajuan(db: Session, app: Application) -> Application:
         )
 
     app.citizen_id = citizen.id
+    # Catat NIK untuk pengajuan berikutnya dari kontak yang sama.
+    ingat_nik(db, app.channel, app.session_id and _kontak_sesi(db, app.session_id), citizen.nik)
     app.status = C.Status.MENUNGGU_VERIFIKASI.value
     app.submitted_at = _now()
     db.add(

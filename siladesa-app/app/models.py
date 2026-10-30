@@ -606,6 +606,32 @@ class Setting(Base):
     )
 
 
+# --------------------------------------------------------------------------- #
+# 23. kontak_nik
+# --------------------------------------------------------------------------- #
+class KontakNik(TimestampMixin, Base):
+    """NIK terakhir yang dipakai tiap kontak, supaya pengajuan ulang
+    tidak perlu mengetik NIK lagi.
+
+    Satu baris per pasangan `(channel, kontak)`. Bukan pengganti verifikasi:
+    NIK tersimpan hanya *ditawarkan* (tersamar) untuk dipakai ulang, bukan
+    langsung dipakai. Kontak generik seperti `web-anonim` dipakai bersama
+    semua pengguna web sehingga tidak pernah ditawari simpanan ini.
+    """
+
+    __tablename__ = "kontak_nik"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    channel: Mapped[str] = mapped_column(String(15), nullable=False)
+    kontak: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
+    nik: Mapped[str] = mapped_column(String(16), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("channel", "kontak", name="uq_kontak_nik_channel_kontak"),
+        CheckConstraint("length(nik) = 16", name="ck_kontak_nik_panjang"),
+    )
+
+
 __all__ = [
     "AdminUser",
     "Application",
@@ -627,6 +653,7 @@ __all__ = [
     "Service",
     "ServiceField",
     "Setting",
+    "KontakNik",
     "TrainingSample",
     "VerificationScan",
 ]

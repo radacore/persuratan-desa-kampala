@@ -46,8 +46,12 @@ INTENTS: list[dict[str, Any]] = [
      "deskripsi": "Ingin dihubungkan dengan petugas desa."},
     {"kode": "TERIMA_KASIH", "nama": "Ucapan terima kasih", "jenis": "sistem",
      "deskripsi": "Warga berterima kasih atau menutup percakapan."},
+    {"kode": "INFO_LOKASI", "nama": "Lokasi kantor", "jenis": "faq",
+     "deskripsi": "Menanyakan lokasi atau alamat kantor desa."},
+    {"kode": "INFO_KONTAK", "nama": "Kontak kantor", "jenis": "faq",
+     "deskripsi": "Menanyakan nomor telepon atau kontak kantor desa."},
     {"kode": "LAINNYA", "nama": "Di luar cakupan", "jenis": "sistem",
-     "deskripsi": "Pertanyaan di luar 18 intent yang dikenali."},
+     "deskripsi": "Pertanyaan di luar 20 intent yang dikenali."},
 ]
 
 # --------------------------------------------------------------------------- #
@@ -328,6 +332,26 @@ FAQS: list[dict[str, Any]] = [
             "Surat keterangan usaha 2 hari kerja karena perlu pengecekan lokasi usaha."
         ),
         "kata_kunci": ["lama", "berapa hari", "cepat", "selesai", "jadi"],
+    },
+    {
+        "intent_kode": "INFO_LOKASI",
+        "pertanyaan": "Di mana lokasi kantor desa?",
+        "jawaban": (
+            "Kantor Desa Kampala beralamat di Jl. Poros Dusun Buntulu Desa Kampala "
+            "Kec. Arungkeke, Kabupaten Jeneponto, Sulawesi Selatan. Kantor berada "
+            "di jalan poros dusun, mudah dijangkau dari semua dusun di Desa Kampala."
+        ),
+        "kata_kunci": ["lokasi", "alamat", "di mana", "kantor di mana", "letak", "posisi", "denah", "peta"],
+    },
+    {
+        "intent_kode": "INFO_KONTAK",
+        "pertanyaan": "Berapa nomor telepon kantor desa?",
+        "jawaban": (
+            "Nomor telepon kantor Desa Kampala dapat ditanyakan langsung kepada "
+            "petugas melalui menu \u201cBicara dengan petugas\u201d pada jam kerja "
+            "(Senin\u2013Kamis pukul 08.00\u201315.00 WITA, Jumat pukul 08.00\u201311.00 WITA)."
+        ),
+        "kata_kunci": ["telepon", "nomor telepon", "kontak", "nomor hp", "hubungi", "telepon kantor"],
     },
     {
         "intent_kode": "INFO_SYARAT_UMUM",

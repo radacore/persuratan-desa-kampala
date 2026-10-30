@@ -480,6 +480,25 @@ _TAMBAHAN: dict[str, list[str]] = {
         "apakah ada pelatihan komputer", "cara mengurus izin mendirikan bangunan",
         "bagaimana cara menjual tanah", "info penerimaan cpns",
         "cara membuat sim c", "apakah bisa menukar uang rusak",
+    ],    "INFO_LOKASI": [
+        "di mana lokasi kantor desa", "alamat kantor desa di mana",
+        "kantor desa kampala di mana", "letak kantor desanya",
+        "bagaimana cara ke kantor desa", "posisi kantor desa",
+        "kantor desa sebelah mana", "rute ke kantor desa",
+        "alamat lengkap kantor desa", "kantor desa dekat mana",
+        "denah lokasi kantor desa", "mau ke kantor desa, di mana",
+        "kantor desa kampala alamatnya apa", "peta kantor desa",
+        "kantor desa berada di dusun mana",
+    ],
+    "INFO_KONTAK": [
+        "berapa nomor telepon kantor desa", "nomor hp kantor desa berapa",
+        "minta nomor kontak kantor desa", "bagaimana cara menghubungi kantor desa",
+        "nomor telepon desa kampala", "ada nomor wa kantor desa",
+        "boleh minta kontak kantor", "telepon kantor desa berapa",
+        "kontak yang bisa dihubungi", "nomor kantor desa",
+        "cara menghubungi petugas lewat telepon", "minta nomor telepon kantor",
+        "berapa kontak kantor desa", "nomor whatsapp kantor desa",
+        "hubungi kantor desa lewat apa",
     ],
 }
 
