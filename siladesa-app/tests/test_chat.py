@@ -179,3 +179,46 @@ def test_prompt_field_tidak_menggandakan_contoh(client):
         data = _kirim(client, sid, nik if nilai is None else nilai)
         if data.get("state") == "KONFIRMASI":
             break
+
+
+def test_jawaban_menu_tidak_masuk_antrean_gagal(client):
+    """Pilihan angka, menu, ya/tidak, terima kasih: intent SISTEM, bukan gagal."""
+    from app.db import SessionLocal
+    from app.models import ChatMessage
+
+    sid = _sesi(client)
+    for jawaban in ["menu", "5", "6", "ya", "tidak", "terima kasih", "1", "batal"]:
+        data = _kirim(client, sid, jawaban)
+        assert data["state"] in {"MENU", "TRACKING", "ESKALASI", "CONSENT", "IDLE"}, jawaban
+
+    with SessionLocal() as db:
+        gagal = db.query(ChatMessage).filter(
+            ChatMessage.session_id == sid,
+            ChatMessage.arah == "in",
+            ChatMessage.intent_kode.is_(None),
+        ).all()
+        assert gagal == [], [m.isi for m in gagal]
+
+
+def test_jawaban_menu_tercatat_intent_sistem(client):
+    """Setiap jawaban navigasi tersimpan dengan intent SISTEM_* berkeyakinan penuh."""
+    from app.db import SessionLocal
+    from app.models import ChatMessage
+
+    sid = _sesi(client)
+    for jawaban in ["5", "6", "ya", "menu"]:
+        _kirim(client, sid, jawaban)
+
+    with SessionLocal() as db:
+        baris = (
+            db.query(ChatMessage)
+            .filter(ChatMessage.session_id == sid, ChatMessage.arah == "in")
+            .order_by(ChatMessage.id)
+            .all()
+        )
+    assert len(baris) >= 4
+    for m in baris[-4:]:
+        assert m.intent_kode in {"SISTEM_MENU", "SISTEM_RESPON", "CEK_STATUS", "BICARA_PETUGAS"}, (
+            m.isi, m.intent_kode,
+        )
+        assert m.confidence == 1.0, (m.isi, m.confidence)

@@ -771,7 +771,7 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
             "balasan": ["Silakan ketik pesan Anda."], "pilihan": [],
         }
 
-    _catat(db, sesi, "in", pesan)
+    masuk = _catat(db, sesi, "in", pesan)
     teks = pesan.lower()
     balasan: list[str] = []
     pilihan: list[dict[str, str]] = []
@@ -782,6 +782,19 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
     faq_id: int | None = None
 
     # --- perintah global -------------------------------------------------- #
+    # Jawaban berupa perintah navigasi (batal/menu/pilihan angka) diberi intent
+    # SISTEM_* dengan keyakinan penuh, supaya tidak tercatat sebagai pertanyaan
+    # yang gagal dikenali pada antrean petugas.
+    if teks in {"1", "2", "3", "4", "5", "6"}:
+        intent = "SISTEM_MENU"
+        confidence = 1.0
+    elif teks in MENU:
+        intent = "SISTEM_MENU"
+        confidence = 1.0
+    elif teks in YA or teks in TIDAK:
+        intent = "SISTEM_RESPON"
+        confidence = 1.0
+
     if teks in BATAL or (
         sesi.state == C.ChatState.KONFIRMASI_WARGA.value and teks == "3"
     ):
@@ -800,7 +813,7 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
         sesi.state = C.ChatState.MENU.value
         balasan = _menu_text(db)
         pilihan = PILIHAN_MENU
-        intent = "SISTEM_MENU"
+        # intent SISTEM_MENU sudah ditandai di atas beserta confidence-nya.
 
     # --- alur stateful ---------------------------------------------------- #
     elif sesi.state == C.ChatState.CONSENT.value:
@@ -895,7 +908,22 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
         tinggi, rendah = _ambang(db)
 
         # Nomor menu lebih diutamakan bila sesi baru dibuka.
-        if teks in {"1", "2", "3", "4"}:
+        # "5" (cek status) dan "6" (bicara petugas) ditangani langsung di sini
+        # agar tidak masuk klasifikasi model lalu tercatat sebagai gagal.
+        if teks == "5":
+            balasan, pilihan, tiket = _jawab_status(db, sesi, pesan)
+            intent = "CEK_STATUS"
+            confidence = 1.0
+        elif teks == "6":
+            sesi.state = C.ChatState.ESKALASI.value
+            balasan = [
+                "Permintaan Anda diteruskan ke petugas desa. Petugas akan membalas pada "
+                "jam kerja (Senin–Kamis 08.00–15.00, Jumat 08.00–11.00 WITA)."
+            ]
+            perlu_petugas = True
+            intent = "BICARA_PETUGAS"
+            confidence = 1.0
+        elif teks in {"1", "2", "3", "4"}:
             kode = _URUTAN_MENU[int(teks) - 1]
             service = _layanan(db, kode)
             if service:
@@ -911,19 +939,6 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
                 pilihan = [{"label": "Ya", "value": "ya"}, {"label": "Tidak", "value": "tidak"}]
                 intent = f"AJUKAN_{kode}"
                 confidence = 1.0
-        elif teks in {"5"}:
-            balasan, pilihan, tiket = _jawab_status(db, sesi, pesan)
-            intent = "CEK_STATUS"
-            confidence = 1.0
-        elif teks in {"6"}:
-            sesi.state = C.ChatState.ESKALASI.value
-            balasan = [
-                "Permintaan Anda diteruskan ke petugas desa. Petugas akan membalas pada "
-                "jam kerja (Senin–Kamis 08.00–15.00, Jumat 08.00–11.00 WITA)."
-            ]
-            perlu_petugas = True
-            intent = "BICARA_PETUGAS"
-            confidence = 1.0
         elif intent is not None and confidence is not None and confidence >= tinggi:
             if intent in INTENT_LAYANAN:
                 kode = INTENT_LAYANAN[intent]
@@ -998,6 +1013,13 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
                 pilihan = PILIHAN_MENU
                 sesi.state = C.ChatState.MENU.value
 
+    # Rekam hasil klasifikasi pada pesan masuknya: antrean pertanyaan gagal
+    # menyeleksi dari kolom ini, jadi jawaban navigasi ber-intent SISTEM_* tidak
+    # ikut tercatat sebagai gagal.
+    masuk.intent_kode = intent
+    masuk.confidence = confidence
+    if faq_id is not None:
+        masuk.faq_id = faq_id
     for baris in balasan:
         _catat(db, sesi, "out", baris, intent=intent, confidence=confidence, faq_id=faq_id)
     db.flush()
