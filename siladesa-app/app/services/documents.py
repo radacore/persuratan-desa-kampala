@@ -605,7 +605,7 @@ def render_pdf(
     )
 
     catatan = (
-        "Dokumen ini dicetak dari SILADESA dan sah tanpa tanda tangan basah."
+        "Dokumen ini dicetak dari Persuratan Desa Kampala dan sah tanpa tanda tangan basah."
         if not draf
         else "DRAF — dokumen ini belum terbit dan tidak sah untuk digunakan."
     )

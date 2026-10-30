@@ -193,7 +193,7 @@ def kirim_pesan_keluar(db: Session, application_id: int, isi: str) -> bool:
 # Teks bantuan
 # --------------------------------------------------------------------------- #
 def _menu_text(db: Session) -> list[str]:
-    sapaan = _setting(db, "sapaan", "Selamat datang di layanan mandiri Desa Kampala.")
+    sapaan = _setting(db, "sapaan", "Selamat datang di layanan Persuratan Desa Kampala.")
     return [
         sapaan,
         "Silakan pilih layanan dengan mengetik angka, atau tanyakan langsung kebutuhan Anda:",
@@ -847,7 +847,7 @@ def tangani(db: Session, sesi: ConversationSession, pesan: str) -> dict[str, Any
                     sesi.state = C.ChatState.MENU.value
                 else:
                     balasan = [
-                        "Sama-sama. Semoga bermanfaat. Layanan Desa Kampala siap membantu "
+                        "Sama-sama. Semoga bermanfaat. Layanan Persuratan Desa Kampala siap membantu "
                         "pada jam kerja."
                     ]
             elif intent == "KOMPLAIN":

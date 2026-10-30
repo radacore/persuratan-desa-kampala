@@ -390,7 +390,7 @@ SETTINGS: list[dict[str, str]] = [
      "deskripsi": "Ambang bawah untuk meminta klarifikasi."},
     {"kunci": "batas_pengajuan_aktif", "nilai": "3", "tipe": "int",
      "deskripsi": "Jumlah maksimum pengajuan aktif per NIK."},
-    {"kunci": "sapaan", "nilai": "Selamat datang di layanan mandiri Desa Kampala.",
+    {"kunci": "sapaan", "nilai": "Selamat datang di layanan Persuratan Desa Kampala.",
      "tipe": "string", "deskripsi": "Kalimat pembuka chat."},
 ]
 

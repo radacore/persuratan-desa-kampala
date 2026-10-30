@@ -2412,7 +2412,7 @@ def ekspor_laporan(
             ]
         )
 
-    nama = f"laporan-siladesa-{awal.isoformat()}_{akhir.isoformat()}.csv"
+    nama = f"laporan-persuratan-{awal.isoformat()}_{akhir.isoformat()}.csv"
     return StreamingResponse(
         iter([buffer.getvalue()]),
         media_type="text/csv; charset=utf-8",

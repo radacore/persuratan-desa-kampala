@@ -24,6 +24,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -178,8 +179,8 @@ class LetterTemplate(TimestampMixin, Base):
             "uq_letter_template_aktif",
             "service_id",
             unique=True,
-            sqlite_where=(aktif == True),  # noqa: E712
-            postgresql_where=(aktif == True),  # noqa: E712
+            sqlite_where=text("aktif = 1"),
+            postgresql_where=text("aktif IS TRUE"),
         ),
     )
 
@@ -314,8 +315,8 @@ class Official(TimestampMixin, Base):
             "uq_official_aktif",
             "jabatan",
             unique=True,
-            sqlite_where=(aktif == True),  # noqa: E712
-            postgresql_where=(aktif == True),  # noqa: E712
+            sqlite_where=text("aktif = 1"),
+            postgresql_where=text("aktif IS TRUE"),
         ),
     )
 
@@ -447,8 +448,8 @@ class NlpModel(Base):
             "uq_nlp_model_aktif",
             "aktif",
             unique=True,
-            sqlite_where=(aktif == True),  # noqa: E712
-            postgresql_where=(aktif == True),  # noqa: E712
+            sqlite_where=text("aktif = 1"),
+            postgresql_where=text("aktif IS TRUE"),
         ),
     )
 

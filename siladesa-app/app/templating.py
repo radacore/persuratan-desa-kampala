@@ -169,7 +169,7 @@ def url_dengan(request, **ubah) -> str:
 templates.env.globals.update(
     app_url=settings.app_url.rstrip("/"),
     versi=settings.app_version,
-    nama_aplikasi="SILADESA",
+    nama_aplikasi="Persuratan Desa Kampala",
     nama_desa="Desa Kampala",
     peran_label={
         "operator": "Operator",

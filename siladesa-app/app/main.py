@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="SILADESA — Sistem Layanan Administrasi Desa",
+    title="Persuratan Desa Kampala — Layanan Administrasi Desa",
     description="Layanan administrasi Desa Kampala berbasis chatbot dan panel operator.",
     version=settings.app_version,
     lifespan=lifespan,

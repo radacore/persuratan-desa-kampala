@@ -102,7 +102,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('official', schema=None) as batch_op:
-        batch_op.create_index('uq_official_aktif', ['jabatan'], unique=True, sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif = 1'))
+        batch_op.create_index('uq_official_aktif', ['jabatan'], unique=True, sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif IS TRUE'))
 
     op.create_table('service',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -218,7 +218,7 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('letter_template', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_letter_template_service_id'), ['service_id'], unique=False)
-        batch_op.create_index('uq_letter_template_aktif', ['service_id'], unique=True, sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif = 1'))
+        batch_op.create_index('uq_letter_template_aktif', ['service_id'], unique=True, sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif IS TRUE'))
 
     op.create_table('nlp_model',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -237,7 +237,7 @@ def upgrade() -> None:
     sa.UniqueConstraint('versi')
     )
     with op.batch_alter_table('nlp_model', schema=None) as batch_op:
-        batch_op.create_index('uq_nlp_model_aktif', ['aktif'], unique=True, sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif = 1'))
+        batch_op.create_index('uq_nlp_model_aktif', ['aktif'], unique=True, sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif IS TRUE'))
 
     op.create_table('service_field',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -449,11 +449,11 @@ def downgrade() -> None:
 
     op.drop_table('service_field')
     with op.batch_alter_table('nlp_model', schema=None) as batch_op:
-        batch_op.drop_index('uq_nlp_model_aktif', sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif = 1'))
+        batch_op.drop_index('uq_nlp_model_aktif', sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif IS TRUE'))
 
     op.drop_table('nlp_model')
     with op.batch_alter_table('letter_template', schema=None) as batch_op:
-        batch_op.drop_index('uq_letter_template_aktif', sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif = 1'))
+        batch_op.drop_index('uq_letter_template_aktif', sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif IS TRUE'))
         batch_op.drop_index(batch_op.f('ix_letter_template_service_id'))
 
     op.drop_table('letter_template')
@@ -479,7 +479,7 @@ def downgrade() -> None:
     op.drop_table('setting')
     op.drop_table('service')
     with op.batch_alter_table('official', schema=None) as batch_op:
-        batch_op.drop_index('uq_official_aktif', sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif = 1'))
+        batch_op.drop_index('uq_official_aktif', sqlite_where=sa.text('aktif = 1'), postgresql_where=sa.text('aktif IS TRUE'))
 
     op.drop_table('official')
     op.drop_table('letter_number_counter')

@@ -1,6 +1,6 @@
-# SILADESA
+# Persuratan Desa Kampala
 
-**Sistem Layanan Administrasi Desa** — chatbot layanan surat Desa Kampala,
+**Persuratan Desa Kampala** — chatbot layanan surat Desa Kampala,
 Kecamatan Arungkeke, Kabupaten Jeneponto. Warga mengajukan surat lewat percakapan,
 operator memverifikasi di panel, sekdes menerbitkan PDF bertanda tangan dan QR
 verifikasi, dan kepala desa dapat mencabut dokumen yang bermasalah.
@@ -353,10 +353,10 @@ cp .env.example .env
 python3 -c "import secrets; print(secrets.token_hex(32))"   # SECRET_KEY
 nano .env
 #   APP_ENV=production
-#   APP_URL=https://siladesa.desakampala.id
+#   APP_URL=https://persuratan-desakampala.my.id
 #   SECRET_KEY=<hasil perintah di atas>
 #   POSTGRES_PASSWORD=<sandi kuat>
-#   DOMAIN=siladesa.desakampala.id
+#   DOMAIN=persuratan-desakampala.my.id
 #   BOOTSTRAP_ADMIN_PASSWORD=<sandi kuat>
 
 # 4. Jalankan

@@ -1,5 +1,5 @@
-# Reverse proxy + TLS otomatis untuk SILADESA.
-# Isi DOMAIN di .env (mis. siladesa.desakampala.id). Bila kosong, Caddy
+# Reverse proxy + TLS otomatis untuk Persuratan Desa Kampala.
+# Isi DOMAIN di .env (mis. persuratan-desakampala.my.id). Bila kosong, Caddy
 # melayani HTTP biasa di localhost — cukup untuk uji lokal.
 
 {$DOMAIN:localhost} {

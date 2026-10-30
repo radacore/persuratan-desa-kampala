@@ -1,4 +1,4 @@
-# SILADESA — satu VPS, tiga kontainer.
+# Persuratan Desa Kampala — satu VPS, tiga kontainer.
 #   app    : FastAPI + Uvicorn (image dibangun dari Dockerfile)
 #   db     : PostgreSQL 16
 #   caddy  : reverse proxy + TLS otomatis
